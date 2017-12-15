@@ -1,0 +1,37 @@
+--------------------
+-- Localization.lua
+--
+-- 2017/12/11
+--------------------
+
+local _, addon = ...
+
+addon.L = {
+  ["MSG_PREFIX"] = "|cFF70B8FFFree Instance Sharer|r:",
+  ["SHARE_START"] = "|cFF00FF00Start|r sharing.",
+  ["SHARE_STOP"] = "|cFFFF0000End|r sharing.",
+  ["TEXT_ENABLE"] = "|cFF00FF00Enabled|r",
+  ["TEXT_DISABLE"] = "|cFFFF0000Disabled|r",
+  ["AUTO_DIFF"] = "Change difficulty: ",
+  ["AUTO_EXTEND"] = "Extend saved instance: ",
+  ["AUTO_INVITE"] = "In-game whisper to invite: ",
+  ["AUTO_INVITE_BN"] = "Battle.net whisper to invite: ",
+  ["AUTO_INVITE_MSG"] = "Trigger text：%s",
+  ["AUTO_LEAVE"] = "Party message to leave: "
+}
+
+if GetLocale() == "zhCN" then
+  addon.L = {
+    ["MSG_PREFIX"] = "|cFF70B8FF免费CD分享|r：",
+    ["SHARE_START"] = "|cFF00FF00开始|r分享。",
+    ["SHARE_STOP"] = "|cFFFF0000停止|r分享。",
+    ["TEXT_ENABLE"] = "|cFF00FF00启用|r",
+    ["TEXT_DISABLE"] = "|cFFFF0000停用|r",
+    ["AUTO_DIFF"] = "自动修改难度：",
+    ["AUTO_EXTEND"] = "自动延长锁定：",
+    ["AUTO_INVITE"] = "密语自动邀请：",
+    ["AUTO_INVITE_BN"] = "战网密语自动邀请：",
+    ["AUTO_INVITE_MSG"] = "文本为：%s",
+    ["AUTO_LEAVE"] = "小队发言退组："
+  }
+end
