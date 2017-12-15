@@ -38,3 +38,7 @@ Modify above vars in `FreeInstanceSharer.lua`.
 ## Contribution
 
 PR to this project.
+
+## License
+
+The MIT License
