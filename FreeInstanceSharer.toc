@@ -1,5 +1,5 @@
 ## Interface: 70300
-## Version: 1.00
+## Version: 1.01
 ## Title: |cFF70B8FFFree Instance Sharer|r
 ## Title-zhCN: |cFF70B8FF免费CD分享|r
 ## Notes: Share your saved instance to others. Using `/fis` to config.

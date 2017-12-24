@@ -8,8 +8,9 @@ local _, addon = ...
 
 addon.L = {
   ["MSG_PREFIX"] = "|cFF70B8FFFree Instance Sharer|r:",
-  ["SHARE_START"] = "|cFF00FF00Start|r sharing.",
-  ["SHARE_STOP"] = "|cFFFF0000End|r sharing.",
+  ["SHARE_STARTING"] = "|cFFFFFF00Starting|r sharing.",
+  ["SHARE_STARTED"] = "|cFF00FF00Started|r sharing.",
+  ["SHARE_STOP"] = "|cFFFF0000Ended|r sharing.",
   ["TEXT_ENABLE"] = "|cFF00FF00Enabled|r",
   ["TEXT_DISABLE"] = "|cFFFF0000Disabled|r",
   ["AUTO_DIFF"] = "Change difficulty: ",
@@ -23,7 +24,8 @@ addon.L = {
 if GetLocale() == "zhCN" then
   addon.L = {
     ["MSG_PREFIX"] = "|cFF70B8FF免费CD分享|r：",
-    ["SHARE_START"] = "|cFF00FF00开始|r分享。",
+    ["SHARE_STARTING"] = "|cFFFFFF00正在准备|r分享。",
+    ["SHARE_STARTED"] = "|cFF00FF00开始|r分享。",
     ["SHARE_STOP"] = "|cFFFF0000停止|r分享。",
     ["TEXT_ENABLE"] = "|cFF00FF00启用|r",
     ["TEXT_DISABLE"] = "|cFFFF0000停用|r",
