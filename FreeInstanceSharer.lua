@@ -273,7 +273,7 @@ function eventFrame:GROUP_ROSTER_UPDATE ()
         self.playerRejected(self)
       end
     else if status == 3 then
-      if GetNumGroupMembers() == 1 then
+      if not IsInGroup() or GetNumGroupMembers() == 1 then
         -- player leaved
         self.playerLeaved(self)
       end
