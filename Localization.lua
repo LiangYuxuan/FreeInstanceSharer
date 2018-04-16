@@ -28,7 +28,7 @@ if true then
     ["AUTO_QUEUE"] = "进组申请排队：",
     ["SHOW_WELCOME_MSG"] = "进组欢迎信息：",
     ["MAX_TIME"] = "最长等待进本时间：",
-    ["AUTO_LEAVE"] = "检查成员位置并退组："
+    ["AUTO_LEAVE"] = "检查成员位置并退组：",
     ["QUEUE_MSG"] = "QUEUE_MSG %d",
     ["WELCOME_MSG"] = "WELCOME_MSG",
   }

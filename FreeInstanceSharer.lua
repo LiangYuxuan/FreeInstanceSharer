@@ -45,12 +45,14 @@ eventFrame:RegisterEvent("CHAT_MSG_WHISPER")
 eventFrame:RegisterEvent("CHAT_MSG_BN_WHISPER")
 eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
 eventFrame:RegisterEvent("CHAT_MSG_PARTY")
-eventFrame:SetScript("OnUpdate", self.OnUpdate)
+eventFrame:SetScript("OnUpdate", function (self, ...)
+  self.OnUpdate(self, ...)
+end)
 eventFrame:SetScript("OnEvent", function (self, event, ...)
 	self[event](self, ...)
 end)
 
-function eventFrame:OnUpdate (self, elapsed)
+function eventFrame:OnUpdate (elapsed)
   timeElapsed = timeElapsed + elapsed
   if FISConfig.enable and timeElapsed >= FISConfig.checkInterval then
     timeElapsed = 0
@@ -59,17 +61,18 @@ function eventFrame:OnUpdate (self, elapsed)
       if #queue > 0 then
         local name = queue[1]
         table.remove(queue, 1)
-        self.inviteToGroup(name)
+        self.inviteToGroup(self, name)
       end
     elseif status == 3 then
       -- check max waiting time
       if FISConfig.maxWaitingTime and time() - invitedTime >= FISConfig.maxWaitingTime then
-        self.leaveGroup()
+        self.leaveGroup(self)
       end
 
       -- check player place
       if FISConfig.autoLeave then
-        local _, _, _, _, _, _, zone = GetRaidRosterInfo(raidIndex);
+        local _, _, _, _, _, _, zone = GetRaidRosterInfo(2);
+        print("Get Player Zone: " .. zone)
         local flag, place = false
         for _, place in pairs(autoLeavePlaces) do
           if zone == place then
@@ -78,7 +81,7 @@ function eventFrame:OnUpdate (self, elapsed)
           end
         end
         if flag then
-          self.leaveGroup()
+          self.leaveGroup(self)
         end
       end
     end
@@ -88,12 +91,14 @@ end
 -- initialization
 -- return nil
 function eventFrame:init ()
-  local ID;
-  for _, ID in pairs(autoLeavePlacesID) do
-    table.insert(autoLeavePlaces, GetMapNameByID(ID))
+  if status == 0 then
+    local ID;
+    for _, ID in pairs(autoLeavePlacesID) do
+      table.insert(autoLeavePlaces, GetMapNameByID(ID))
+    end
+    self.printStatus(self)
+    status = 1
   end
-  self.printStatus()
-  status = 1
 end
 
 -- print current status and config to chatframe
@@ -131,12 +136,12 @@ function eventFrame:addToQueue (name)
         end
       end
       if flag == false then
-        SendChatMessage(string.format(L["QUEUE_MSG"], #queue, nil, name))
-        table.insert(name)
+        SendChatMessage(string.format(L["QUEUE_MSG"], #queue + 1), "WHISPER", nil, name)
+        table.insert(queue, name)
       end
       return not flag
     else
-      self.inviteToGroup(name)
+      self.inviteToGroup(self, name)
       return 0
     end
   end
@@ -172,6 +177,16 @@ end
 
 function eventFrame:PLAYER_ENTERING_WORLD ()
   RequestRaidInfo()
+  if not FISConfig then
+    FISConfig = defaultConfig
+  else
+    local key, value
+    for key, value in pairs(defaultConfig) do
+      if not FISConfig[key] then
+        FISConfig[key] = defaultConfig[key]
+      end
+    end
+  end
 end
 
 function eventFrame:UPDATE_INSTANCE_INFO ()
@@ -183,17 +198,17 @@ function eventFrame:UPDATE_INSTANCE_INFO ()
       end
     end
   end
-  self.init()
+  self.init(self)
 end
 
 function eventFrame:CHAT_MSG_WHISPER (...)
   if FISConfig.enable then
     local message, sender = ...
 
-    local isInviteMsg = message == autoInviteMsg
+    local isInviteMsg = message == FISConfig.autoInviteMsg
 
-    if autoInvite and isInviteMsg then
-      self.addToQueue(sender)
+    if FISConfig.autoInvite and isInviteMsg then
+      self.addToQueue(self, sender)
     end
   end
 end
@@ -205,9 +220,9 @@ function eventFrame:CHAT_MSG_BN_WHISPER (...)
     local _, _, _, _, _, bnetIDGameAccount = BNGetFriendInfoByID(presenceID)
     local _, characterName, _, realmName = BNGetGameAccountInfo(bnetIDGameAccount)
 
-    local isInviteMsg = message == autoInviteBNMsg
+    local isInviteMsg = message == FISConfig.autoInviteBNMsg
 
-    if autoInviteBN and isInviteMsg then
+    if FISConfig.autoInviteBN and isInviteMsg then
       self.addToQueue(characterName .. "-" .. realmName)
     end
   end
@@ -215,7 +230,7 @@ end
 
 function eventFrame:GROUP_ROSTER_UPDATE (...)
   -- TODO: handle this event
-  self.playerInvited()
+  self.playerInvited(self)
   -- DEBUG: shows when this event fired
   print("GROUP_ROSTER_UPDATE fired with args: ", ...)
 end
@@ -225,9 +240,10 @@ function eventFrame:CHAT_MSG_PARTY (...)
   -- TODO: H / 10 CHANGE
 end
 
+-- TODO: rewrite function to eventFrame
 SLASH_FIS1 = "/fis"
 SlashCmdList["FIS"] = function (msg, editbox)
   FISConfig.enable = not FISConfig.enable
-  eventFrame.printStatus()
+  eventFrame.printStatus(eventFrame)
   -- TODO: not only change enable
 end
