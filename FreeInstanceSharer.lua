@@ -199,10 +199,12 @@ function eventFrame:leaveGroup ()
   end
 end
 
-function eventFrame:slashCmdHandle (msg, editbox)
+function eventFrame:slashCmdHandler (message, editbox)
   -- TODO: not only change enable
   FISConfig.enable = not FISConfig.enable
   self.printStatus(self)
+  -- DEBUG: print message
+  print("Slash CMD Handler: " .. message)
 end
 
 function eventFrame:PLAYER_ENTERING_WORLD ()
@@ -294,5 +296,5 @@ end
 
 SLASH_FIS1 = "/fis"
 SlashCmdList["FIS"] = function (...)
-  eventFrame.slashCmdHandle(eventFrame, ...)
+  eventFrame.slashCmdHandler(eventFrame, ...)
 end
