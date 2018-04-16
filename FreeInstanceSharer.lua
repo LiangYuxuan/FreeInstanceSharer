@@ -74,7 +74,6 @@ function eventFrame:OnUpdate (elapsed)
       -- check player place
       if FISConfig.autoLeave then
         local _, _, _, _, _, _, zone = GetRaidRosterInfo(2);
-        print("Get Player Zone: " .. zone)
         local flag, place = false
         for _, place in pairs(autoLeavePlaces) do
           if zone == place then
@@ -203,8 +202,6 @@ function eventFrame:slashCmdHandler (message, editbox)
   -- TODO: not only change enable
   FISConfig.enable = not FISConfig.enable
   self.printStatus(self)
-  -- DEBUG: print message
-  print("Slash CMD Handler: " .. message)
 end
 
 function eventFrame:PLAYER_ENTERING_WORLD ()
@@ -272,7 +269,7 @@ function eventFrame:GROUP_ROSTER_UPDATE ()
         -- rejected
         self.playerRejected(self)
       end
-    else if status == 3 then
+    elseif status == 3 then
       if not IsInGroup() or GetNumGroupMembers() == 1 then
         -- player leaved
         self.playerLeaved(self)

@@ -4,12 +4,11 @@ A light World of Warcraft addon to share your saved instance to others.
 
 ## Introduction
 
-Share saved instance by invite other players by in-game whisper or battle.net whisper. Also with other supporting feature.
+Share saved instance by invite other players by in-game whisper or battle.net message. Also with other supporting feature.
 
 * Invite player who send whisper to you.
 * Auto extending saved instance.
 * Auto change difficulty.
-* Auto leave party when receiving message in party channel.
 
 ## Usage
 
