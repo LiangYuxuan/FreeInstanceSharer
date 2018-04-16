@@ -10,9 +10,10 @@ local defaultConfig = {
   ["autoInviteBN"] = true, -- 战网密语进组
   ["autoInviteBNMsg"] = "123", -- 战网密语进组信息
   ["autoQueue"] = true, -- 进组申请排队
-  ["welcomeMsg"] = true, -- 显示欢迎信息
   ["maxWaitingTime"] = 30, -- 最长在组等待时间 (0 - 无限制)
   ["autoLeave"] = true, -- 检查成员位置并退组
+  ["welcomeMsg"] = true, -- 进组时发送信息
+  ["leaveMsg"] = true, -- 退组时发送信息
 }
 
 local autoLeavePlacesID = {
@@ -33,10 +34,11 @@ local autoLeavePlacesID = {
 }
 
 local status = 0 -- 运行状态 0 - 未就绪 1 - 空闲 2 - 正在邀请 3 - 已经进组
-local queue = {} -- 排队队列
-local invitedTime -- 接受邀请的时间
 local timeElapsed = 0 -- 上次检查时间间隔
 local autoLeavePlaces = {}
+local queue = {} -- 排队队列
+local invitedTime -- 接受邀请的时间
+local groupRosterUpdateTimes -- GROUP_ROSTER_UPDATE 触发次数
 
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -112,9 +114,10 @@ function eventFrame:printStatus ()
       print(L["AUTO_INVITE"] .. (FISConfig.autoInvite and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteMsg))
       print(L["AUTO_INVITE_BN"] .. (FISConfig.autoInviteBN and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteBNMsg))
       print(L["AUTO_QUEUE"] .. (FISConfig.autoQueue and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-      print(L["SHOW_WELCOME_MSG"] .. (FISConfig.welcomeMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
       print(L["MAX_TIME"] .. FISConfig.maxWaitingTime .. "s")
       print(L["AUTO_LEAVE"] .. (FISConfig.autoLeave and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+      print(L["SHOW_WELCOME_MSG"] .. (FISConfig.welcomeMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+      print(L["SHOW_LEAVE_MSG"] .. (FISConfig.leaveMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
     else
       print(L["MSG_PREFIX"] .. L["SHARE_STARTING"])
     end
@@ -155,7 +158,12 @@ function eventFrame:inviteToGroup (name)
     SetLegacyRaidDifficultyID(4) -- 旧世副本难度25人普通
     ResetInstances()
     InviteUnit(name)
-    status = 2
+    if FISConfig.autoQueue then
+      groupRosterUpdateTimes = 0
+      status = 2
+    else
+      status = 1
+    end
   end
 end
 
@@ -163,16 +171,38 @@ end
 -- return nil
 function eventFrame:playerInvited ()
   invitedTime = time()
-  SendChatMessage(L["WELCOME_MSG"], "PARTY")
+  SendChatMessage(string.format(L["WELCOME_MSG"], FISConfig.maxWaitingTime), "PARTY")
   status = 3
 end
 
+-- mark rejected
+-- return nil
+function eventFrame:playerRejected ()
+  status = 1
+end
+
+-- mark leaved
+-- return nil
+function eventFrame:playerLeaved ()
+  status = 1
+end
+
+-- transfer leader and leave party
+-- return nil
 function eventFrame:leaveGroup ()
   if status == 3 then
+    SendChatMessage(L["LEAVE_MSG"], "PARTY")
+    -- set status first to prevent GROUP_ROSTER_UPDATE handle
+    status = 1
     PromoteToLeader("party1")
     LeaveParty()
-    status = 1
   end
+end
+
+function eventFrame:slashCmdHandle (msg, editbox)
+  -- TODO: not only change enable
+  FISConfig.enable = not FISConfig.enable
+  self.printStatus(self)
 end
 
 function eventFrame:PLAYER_ENTERING_WORLD ()
@@ -223,27 +253,46 @@ function eventFrame:CHAT_MSG_BN_WHISPER (...)
     local isInviteMsg = message == FISConfig.autoInviteBNMsg
 
     if FISConfig.autoInviteBN and isInviteMsg then
-      self.addToQueue(characterName .. "-" .. realmName)
+      self.addToQueue(self, characterName .. "-" .. realmName)
     end
   end
 end
 
-function eventFrame:GROUP_ROSTER_UPDATE (...)
-  -- TODO: handle this event
-  self.playerInvited(self)
-  -- DEBUG: shows when this event fired
-  print("GROUP_ROSTER_UPDATE fired with args: ", ...)
+function eventFrame:GROUP_ROSTER_UPDATE ()
+  -- NOTE: before inviting: 2 times, accepted or rejected: 1 times, leaving party: 3 times
+  groupRosterUpdateTimes = groupRosterUpdateTimes + 1
+  if groupRosterUpdateTimes > 2 then
+    if status == 2 then
+      if GetNumGroupMembers() > 1 then
+        -- accepted
+        self.playerInvited(self)
+      else
+        -- rejected
+        self.playerRejected(self)
+      end
+    else if status == 3 then
+      if GetNumGroupMembers() == 1 then
+        -- player leaved
+        self.playerLeaved(self)
+      end
+    end
+  end
 end
 
 function eventFrame:CHAT_MSG_PARTY (...)
   local message = ...
-  -- TODO: H / 10 CHANGE
+
+  local isTenPlayer = string.find(message, "10")
+  local isHeroic = string.find(message, "H") or string.find(message, "h")
+
+  local RaidDifficulty = isHeroic and 15 or 14
+  local LegacyRaidDifficulty = isHeroic and (isTenPlayer and 5 or 6) or (isTenPlayer and 3 or 4)
+
+  SetRaidDifficultyID(RaidDifficulty)
+  SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
 end
 
--- TODO: rewrite function to eventFrame
 SLASH_FIS1 = "/fis"
-SlashCmdList["FIS"] = function (msg, editbox)
-  FISConfig.enable = not FISConfig.enable
-  eventFrame.printStatus(eventFrame)
-  -- TODO: not only change enable
+SlashCmdList["FIS"] = function (...)
+  eventFrame.slashCmdHandle(eventFrame, ...)
 end
