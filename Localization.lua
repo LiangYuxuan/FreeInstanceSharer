@@ -7,21 +7,12 @@
 local _, addon = ...
 
 addon.L = {
-  ["MSG_PREFIX"] = "|cFF70B8FFFree Instance Sharer|r:",
-  ["SHARE_STARTING"] = "|cFFFFFF00Starting|r sharing.",
-  ["SHARE_STARTED"] = "|cFF00FF00Started|r sharing.",
-  ["SHARE_STOP"] = "|cFFFF0000Ended|r sharing.",
-  ["TEXT_ENABLE"] = "|cFF00FF00Enabled|r",
-  ["TEXT_DISABLE"] = "|cFFFF0000Disabled|r",
-  ["AUTO_EXTEND"] = "Extend saved instance: ",
-  ["AUTO_INVITE"] = "In-game whisper to invite: ",
-  ["AUTO_INVITE_BN"] = "Battle.net whisper to invite: ",
-  ["AUTO_INVITE_MSG"] = "Trigger text：%s",
-  -- TODO: QUEUE_MSG & WELCOME_MSG
-  ["AUTO_LEAVE"] = "Party message to leave: " -- CHANGED
+  -- TODO: English Version
 }
 
-if GetLocale() == "zhCN" then
+-- TODO: Change this when English Version ready
+-- if GetLocale() == "zhCN" then
+if true then
   addon.L = {
     ["MSG_PREFIX"] = "|cFF70B8FF免费CD分享|r：",
     ["SHARE_STARTING"] = "|cFFFFFF00正在准备|r分享。",
@@ -30,10 +21,15 @@ if GetLocale() == "zhCN" then
     ["TEXT_ENABLE"] = "|cFF00FF00启用|r",
     ["TEXT_DISABLE"] = "|cFFFF0000停用|r",
     ["AUTO_EXTEND"] = "自动延长锁定：",
+    ["CHECK_INVAL"] = "检查时间间隔：",
     ["AUTO_INVITE"] = "密语自动邀请：",
     ["AUTO_INVITE_BN"] = "战网密语自动邀请：",
     ["AUTO_INVITE_MSG"] = "文本为：%s",
-    -- TODO: QUEUE_MSG & WELCOME_MSG
-    ["AUTO_LEAVE"] = "小队发言退组：" -- CHANGED
+    ["AUTO_QUEUE"] = "进组申请排队：",
+    ["SHOW_WELCOME_MSG"] = "进组欢迎信息：",
+    ["MAX_TIME"] = "最长等待进本时间：",
+    ["AUTO_LEAVE"] = "检查成员位置并退组："
+    ["QUEUE_MSG"] = "QUEUE_MSG %d",
+    ["WELCOME_MSG"] = "WELCOME_MSG",
   }
 end

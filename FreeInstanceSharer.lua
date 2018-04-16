@@ -9,7 +9,7 @@ local defaultConfig = {
   ["autoInviteMsg"] = "123", -- 密语进组信息
   ["autoInviteBN"] = true, -- 战网密语进组
   ["autoInviteBNMsg"] = "123", -- 战网密语进组信息
-  ["autoQueue"] = true, -- 多个进组申请排队
+  ["autoQueue"] = true, -- 进组申请排队
   ["welcomeMsg"] = true, -- 显示欢迎信息
   ["maxWaitingTime"] = 30, -- 最长在组等待时间 (0 - 无限制)
   ["autoLeave"] = true, -- 检查成员位置并退组
@@ -99,14 +99,17 @@ end
 -- print current status and config to chatframe
 -- return nil
 function eventFrame:printStatus ()
-  -- TODO: show new configs
   if FISConfig.enable then
     if status then
       print(L["MSG_PREFIX"] .. L["SHARE_STARTED"])
-      print(L["AUTO_EXTEND"] .. (autoExtend and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-      print(L["AUTO_INVITE"] .. (autoInvite and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], autoInviteMsg))
-      print(L["AUTO_INVITE_BN"] .. (autoInviteBN and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], autoInviteBNMsg))
-      print(L["AUTO_LEAVE"] .. (autoLeave and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+      print(L["AUTO_EXTEND"] .. (FISConfig.autoExtend and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+      print(L["CHECK_INVAL"] .. FISConfig.checkInterval .. "s")
+      print(L["AUTO_INVITE"] .. (FISConfig.autoInvite and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteMsg))
+      print(L["AUTO_INVITE_BN"] .. (FISConfig.autoInviteBN and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteBNMsg))
+      print(L["AUTO_QUEUE"] .. (FISConfig.autoQueue and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+      print(L["SHOW_WELCOME_MSG"] .. (FISConfig.welcomeMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+      print(L["MAX_TIME"] .. FISConfig.maxWaitingTime .. "s")
+      print(L["AUTO_LEAVE"] .. (FISConfig.autoLeave and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
     else
       print(L["MSG_PREFIX"] .. L["SHARE_STARTING"])
     end
@@ -116,39 +119,46 @@ function eventFrame:printStatus ()
 end
 
 -- add a player to queue
--- return 0 - success 1 - fail(exists)
+-- return nil - not enabled 0 - success 1 - fail(exists)
 function eventFrame:addToQueue (name)
-  -- TODO: not enable, not autoQueue
-  local flag, curr = false
-  for _, curr in pairs(queue) do
-    if curr == name then
-      flag = true
-      break
+  if FISConfig.enable then
+    if FISConfig.autoQueue then
+      local flag, curr = false
+      for _, curr in pairs(queue) do
+        if curr == name then
+          flag = true
+          break
+        end
+      end
+      if flag == false then
+        SendChatMessage(string.format(L["QUEUE_MSG"], #queue, nil, name))
+        table.insert(name)
+      end
+      return not flag
+    else
+      self.inviteToGroup(name)
+      return 0
     end
   end
-  if flag == false then
-    -- TODO: SendChatMessage
-    table.insert(name)
-  end
-  return not flag
 end
 
 -- invite player
 -- return nil
 function eventFrame:inviteToGroup (name)
-  -- TODO: not enable
-  SetRaidDifficultyID(14) -- 普通难度
-  SetLegacyRaidDifficultyID(4) -- 旧世副本难度25人普通
-  ResetInstances()
-  InviteUnit(name)
-  status = 2
+  if FISConfig.enable then
+    SetRaidDifficultyID(14) -- 普通难度
+    SetLegacyRaidDifficultyID(4) -- 旧世副本难度25人普通
+    ResetInstances()
+    InviteUnit(name)
+    status = 2
+  end
 end
 
 -- mark invited
 -- return nil
 function eventFrame:playerInvited ()
   invitedTime = time()
-  -- TODO: SendChatMessage
+  SendChatMessage(L["WELCOME_MSG"], "PARTY")
   status = 3
 end
 
@@ -177,27 +187,29 @@ function eventFrame:UPDATE_INSTANCE_INFO ()
 end
 
 function eventFrame:CHAT_MSG_WHISPER (...)
-  -- TODO: check enable
-  local message, sender = ...
+  if FISConfig.enable then
+    local message, sender = ...
 
-  local isInviteMsg = message == autoInviteMsg
+    local isInviteMsg = message == autoInviteMsg
 
-  if autoInvite and isInviteMsg then
-    self.addToQueue(sender)
+    if autoInvite and isInviteMsg then
+      self.addToQueue(sender)
+    end
   end
 end
 
 function eventFrame:CHAT_MSG_BN_WHISPER (...)
-  -- TODO: check enable
-  local message, _, _, _, _, _, _, _, _, _, _, _, presenceID = ...
+  if FISConfig.enable then
+    local message, _, _, _, _, _, _, _, _, _, _, _, presenceID = ...
 
-  local _, _, _, _, _, bnetIDGameAccount = BNGetFriendInfoByID(presenceID)
-  local _, characterName, _, realmName = BNGetGameAccountInfo(bnetIDGameAccount)
+    local _, _, _, _, _, bnetIDGameAccount = BNGetFriendInfoByID(presenceID)
+    local _, characterName, _, realmName = BNGetGameAccountInfo(bnetIDGameAccount)
 
-  local isInviteMsg = message == autoInviteBNMsg
+    local isInviteMsg = message == autoInviteBNMsg
 
-  if autoInviteBN and isInviteMsg then
-    self.addToQueue(characterName .. "-" .. realmName)
+    if autoInviteBN and isInviteMsg then
+      self.addToQueue(characterName .. "-" .. realmName)
+    end
   end
 end
 
