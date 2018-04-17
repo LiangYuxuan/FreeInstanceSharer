@@ -16,26 +16,25 @@ local defaultConfig = {
   ["leaveMsg"] = true, -- 退组时发送信息
 }
 
-local autoLeavePlacesID = {
-  766, -- 安其拉
-  796, -- 黑暗神殿
-  529, -- 奥杜尔
-  604, -- 冰冠堡垒
-  754, -- 黑翼血环
-  773, -- 风神王座
-  800, -- 火焰之地
-  824, -- 巨龙之魂
-  886, -- 永春台
-  896, -- 魔古山宝库
-  930, -- 雷电王座
-  953, -- 决战奥格瑞玛
-  988, -- 黑石铸造厂
-  1026, -- 地狱火堡垒
+local autoLeaveInstanceMapID = {
+  531, -- 安其拉神殿
+  564, -- 黑暗神殿
+  603, -- 奥杜尔
+  631, -- 冰冠堡垒
+  669, -- 黑翼血环
+  754, -- 风神王座
+  720, -- 火焰之地
+  967, -- 巨龙之魂
+  966, -- 永春台
+  1008, -- 魔古山宝库
+  1098, -- 雷电王座
+  1136, -- 决战奥格瑞玛
+  1205, -- 黑石铸造厂
+  1448, -- 地狱火堡垒
 }
 
 local status = 0 -- 运行状态 0 - 未就绪 1 - 空闲 2 - 正在邀请 3 - 已经进组
 local timeElapsed = 0 -- 上次检查时间间隔
-local autoLeavePlaces = {}
 local queue = {} -- 排队队列
 local invitedTime -- 接受邀请的时间
 local groupRosterUpdateTimes -- GROUP_ROSTER_UPDATE 触发次数
@@ -73,16 +72,15 @@ function eventFrame:OnUpdate (elapsed)
 
       -- check player place
       if FISConfig.autoLeave then
-        local _, _, _, _, _, _, zone = GetRaidRosterInfo(2);
-        local flag, place = false
-        for _, place in pairs(autoLeavePlaces) do
-          if zone == place then
-            flag = true
-            break
+        local posY, posX, posZ, instanceID = UnitPosition("party1")
+        if instanceID then
+          local ID
+          for _, ID in pairs(autoLeaveInstanceMapID) do
+            if instanceID == ID then
+              self.leaveGroup(self)
+              break
+            end
           end
-        end
-        if flag then
-          self.leaveGroup(self)
         end
       end
     end
@@ -93,10 +91,6 @@ end
 -- return nil
 function eventFrame:init ()
   if status == 0 then
-    local ID;
-    for _, ID in pairs(autoLeavePlacesID) do
-      table.insert(autoLeavePlaces, GetMapNameByID(ID))
-    end
     self.printStatus(self)
     status = 1
   end
@@ -200,6 +194,7 @@ end
 
 function eventFrame:slashCmdHandler (message, editbox)
   -- TODO: not only change enable
+  -- TODO: Opition Page
   FISConfig.enable = not FISConfig.enable
   self.printStatus(self)
 end
