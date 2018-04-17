@@ -164,7 +164,7 @@ end
 -- return nil
 function eventFrame:playerInvited ()
   invitedTime = time()
-  SendChatMessage(string.format(L["WELCOME_MSG"], FISConfig.maxWaitingTime), "PARTY")
+  SendChatMessage(L["WELCOME_MSG"], "PARTY")
   status = 3
 end
 
