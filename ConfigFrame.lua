@@ -17,18 +17,15 @@ group:AddButton(L["ENABLE"], "enable")
 table.insert(frames.inviteOnly, group:AddButton(L["INVITE_ONLY"], "inviteOnly"))
 table.insert(frames.inviteOnly, group:AddButton(L["PREVENT_AFK"], "preventAFK"))
 table.insert(frames.inviteOnly, group:AddButton(L["AUTO_EXTEND"], "autoExtend"))
+table.insert(frames.inviteOnly, group:AddButton(L["AUTO_INVITE"], "autoInvite"))
+table.insert(frames.inviteOnly, group:AddButton(L["AUTO_INVITE_BN"], "autoInviteBN"))
 
-local autoInvite = group:AddButton(L["AUTO_INVITE"], "autoInvite")
-local autoInviteBN = group:AddButton(L["AUTO_INVITE_BN"], "autoInviteBN")
-table.insert(frames.inviteOnly, autoInvite)
-table.insert(frames.inviteOnly, autoInviteBN)
-
-local checkInterval = group:AddDummy(L["CHECK_INVAL"], true)
+group:AddDummy(L["CHECK_INVAL"], true)
 table.insert(frames.others, group:AddButton(L["AUTO_QUEUE"], "autoQueue"))
-local maxWaitingTime = group:AddDummy(L["MAX_TIME"], true)
+group:AddDummy(L["MAX_TIME"], true)
 table.insert(frames.others, group:AddButton(L["AUTO_LEAVE"], "autoLeave"))
-table.insert(frames.others, group:AddButton(L["SHOW_WELCOME_MSG"], "welcomeMsg")) -- NOTE: Remove prefix SHOW after put MSG into Config
-table.insert(frames.others, group:AddButton(L["SHOW_LEAVE_MSG"], "leaveMsg")) -- NOTE: Remove prefix SHOW after put MSG into Config
+group:AddDummy(L["WELCOME_MSG"], true)
+group:AddDummy(L["LEAVE_MSG"], true)
 
 function group:OnCheckInit(value)
 	return FISConfig[value]
@@ -37,6 +34,8 @@ end
 function group:OnCheckChanged(value, checked)
 	FISConfig[value] = checked and true or false
   local curr
+
+  -- Toggle Enable and Disable
   if value == "enable" then
     for _, curr in pairs(frames.inviteOnly) do
       if checked then
@@ -55,7 +54,53 @@ function group:OnCheckChanged(value, checked)
       end
     end
   end
+
+  -- Print Status
   if value == "enable" or value == "inviteOnly" then
     addon.eventFrame.printStatus(addon.eventFrame)
   end
+end
+
+local autoInviteMsg = frame:CreateEditBox()
+table.insert(frames.inviteOnly, autoInviteMsg)
+autoInviteMsg:SetPoint("LEFT", group[5].text, "RIGHT", 10, 0)
+
+local autoInviteBNMsg = frame:CreateEditBox()
+table.insert(frames.inviteOnly, autoInviteBNMsg)
+autoInviteBNMsg:SetPoint("LEFT", group[6].text, "RIGHT", 10, 0)
+
+local checkInterval = frame:CreateEditBox()
+table.insert(frames.others, checkInterval)
+checkInterval:SetNumeric(true)
+checkInterval:SetPoint("LEFT", group[7].text, "RIGHT", 10, 0)
+
+local queueMsg = frame:CreateEditBox()
+table.insert(frames.others, queueMsg)
+queueMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
+queueMsg:SetPoint("LEFT", group[8].text, "RIGHT", 10, 0)
+
+local maxWaitingTime = frame:CreateEditBox()
+table.insert(frames.others, maxWaitingTime)
+maxWaitingTime:SetNumeric(true)
+maxWaitingTime:SetPoint("LEFT", group[9].text, "RIGHT", 10, 0)
+
+local welcomeMsg = frame:CreateEditBox()
+table.insert(frames.others, welcomeMsg)
+welcomeMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
+welcomeMsg:SetPoint("LEFT", group[11].text, "RIGHT", 10, 0)
+
+local leaveMsg = frame:CreateEditBox()
+table.insert(frames.others, leaveMsg)
+leaveMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
+leaveMsg:SetPoint("LEFT", group[12].text, "RIGHT", 10, 0)
+
+-- Self defined function
+addon.eventFrame.ON_PLAYER_ENTERING_WORLD = function ()
+  autoInviteMsg:SetText(FISConfig.autoInviteMsg)
+  autoInviteBNMsg:SetText(FISConfig.autoInviteBNMsg)
+  checkInterval:SetNumber(FISConfig.checkInterval)
+  queueMsg:SetText(FISConfig.queueMsg)
+  maxWaitingTime:SetNumber(FISConfig.maxWaitingTime)
+  welcomeMsg:SetText(FISConfig.welcomeMsg)
+  leaveMsg:SetText(FISConfig.leaveMsg)
 end

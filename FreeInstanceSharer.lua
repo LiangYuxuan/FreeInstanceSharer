@@ -10,12 +10,13 @@ local defaultConfig = {
   ["autoInviteMsg"] = "123", -- 密语进组信息
   ["autoInviteBN"] = true, -- 战网密语进组
   ["autoInviteBNMsg"] = "123", -- 战网密语进组信息
-  ["checkInterval"] = 0.5, -- 检查间隔
-  ["autoQueue"] = true, -- 进组申请排队
+  ["checkInterval"] = 500, -- 检查间隔
+  ["autoQueue"] = true, -- 自动排队
+  ["queueMsg"] = "你已进入队列，排在第 %d 名。", -- 进入队列提示
   ["maxWaitingTime"] = 30, -- 最长在组等待时间 (0 - 无限制)
   ["autoLeave"] = true, -- 检查成员位置并退组
-  ["welcomeMsg"] = true, -- 进组时发送信息
-  ["leaveMsg"] = true, -- 退组时发送信息
+  ["welcomeMsg"] = "你现在有 30 秒的进本时间。默认难度为25人普通，在队伍发送 10 切换为10人模式，发送 H 切换为英雄模式。", -- 进组时发送的信息
+  ["leaveMsg"] = "已将队长转交，刷无敌请自行在副本内修改难度为英雄（如果未成功请在副本外设置自己为25普通在来一次）。", -- 退组时发送的信息
 }
 
 local autoLeaveInstanceMapID = {
@@ -60,7 +61,7 @@ end)
 function eventFrame:OnUpdate (elapsed)
   if not FISConfig.inviteOnly then
     timeElapsed = timeElapsed + elapsed
-    if FISConfig.enable and timeElapsed >= FISConfig.checkInterval then
+    if FISConfig.enable and (timeElapsed * 1000) >= FISConfig.checkInterval then
       timeElapsed = 0
       if status == 1 then
         -- check queue
@@ -133,7 +134,9 @@ function eventFrame:addToQueue (name)
         end
       end
       if flag == false then
-        SendChatMessage(string.format(L["QUEUE_MSG"], #queue + 1), "WHISPER", nil, name)
+        if FISConfig.queueMsg and FISConfig.queueMsg ~= "" then
+          SendChatMessage(string.format(FISConfig.queueMsg, #queue + 1), "WHISPER", nil, name)
+        end
         table.insert(queue, name)
       end
       return not flag
@@ -165,7 +168,9 @@ end
 -- return nil
 function eventFrame:playerInvited ()
   invitedTime = time()
-  SendChatMessage(L["WELCOME_MSG"], "PARTY")
+  if FISConfig.welcomeMsg and FISConfig.welcomeMsg ~= "" then
+    SendChatMessage(FISConfig.welcomeMsg, "PARTY")
+  end
   status = 3
 end
 
@@ -185,7 +190,9 @@ end
 -- return nil
 function eventFrame:leaveGroup ()
   if status == 3 then
-    SendChatMessage(L["LEAVE_MSG"], "PARTY")
+    if FISConfig.leaveMsg and FISConfig.leaveMsg ~= "" then
+      SendChatMessage(FISConfig.leaveMsg, "PARTY")
+    end
     -- set status first to prevent GROUP_ROSTER_UPDATE handle
     status = 1
     PromoteToLeader("party1")
@@ -215,6 +222,7 @@ function eventFrame:PLAYER_ENTERING_WORLD ()
       end
     end
   end
+  self.ON_PLAYER_ENTERING_WORLD(self)
 end
 
 function eventFrame:UPDATE_INSTANCE_INFO ()
