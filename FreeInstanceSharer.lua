@@ -3,7 +3,8 @@ local L = addon.L
 
 local defaultConfig = {
   ["enable"] = false, -- 启动时启用
-  ["onlyInvite"] = false, -- 极简模式（只启用自动延长锁定、密语进组）
+  ["onlyInvite"] = false, -- 极简模式（只启用防AFK、自动延长锁定、密语进组）
+  ["preventAFK"] = true, -- 防AFK
   ["autoExtend"] = true, -- 自动延长锁定
   ["autoInvite"] = true, -- 密语进组
   ["autoInviteMsg"] = "123", -- 密语进组信息
@@ -43,6 +44,7 @@ local groupRosterUpdateTimes -- GROUP_ROSTER_UPDATE 触发次数
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UPDATE_INSTANCE_INFO")
+eventFrame:RegisterEvent("PLAYER_CAMPING")
 eventFrame:RegisterEvent("CHAT_MSG_WHISPER")
 eventFrame:RegisterEvent("CHAT_MSG_BN_WHISPER")
 eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
@@ -236,6 +238,13 @@ function eventFrame:UPDATE_INSTANCE_INFO ()
     end
   end
   self.init(self)
+end
+
+function eventFrame:PLAYER_CAMPING ()
+  if FISConfig.preventAFK then
+    local Popup = StaticPopup_Visible("CAMP")
+    _G[Popup.."Button1"]:Click()
+  end
 end
 
 function eventFrame:CHAT_MSG_WHISPER (...)
