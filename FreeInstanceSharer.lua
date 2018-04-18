@@ -42,6 +42,7 @@ local invitedTime -- 接受邀请的时间
 local groupRosterUpdateTimes -- GROUP_ROSTER_UPDATE 触发次数
 
 local eventFrame = CreateFrame("Frame")
+addon.eventFrame = eventFrame
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UPDATE_INSTANCE_INFO")
 eventFrame:RegisterEvent("PLAYER_CAMPING")
@@ -107,21 +108,9 @@ function eventFrame:printStatus ()
   if FISConfig.enable then
     if status then
       if FISConfig.inviteOnly then
-        print(L["MSG_PREFIX"] .. L["INVITE_ONLY"])
-        print(L["AUTO_EXTEND"] .. (FISConfig.autoExtend and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-        print(L["AUTO_INVITE"] .. (FISConfig.autoInvite and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteMsg))
-        print(L["AUTO_INVITE_BN"] .. (FISConfig.autoInviteBN and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteBNMsg))
+        print(L["MSG_PREFIX"] .. L["INVITE_ONLY_MODE"])
       else
         print(L["MSG_PREFIX"] .. L["SHARE_STARTED"])
-        print(L["AUTO_EXTEND"] .. (FISConfig.autoExtend and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-        print(L["CHECK_INVAL"] .. FISConfig.checkInterval .. "s")
-        print(L["AUTO_INVITE"] .. (FISConfig.autoInvite and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteMsg))
-        print(L["AUTO_INVITE_BN"] .. (FISConfig.autoInviteBN and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteBNMsg))
-        print(L["AUTO_QUEUE"] .. (FISConfig.autoQueue and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-        print(L["MAX_TIME"] .. FISConfig.maxWaitingTime .. "s")
-        print(L["AUTO_LEAVE"] .. (FISConfig.autoLeave and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-        print(L["SHOW_WELCOME_MSG"] .. (FISConfig.welcomeMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-        print(L["SHOW_LEAVE_MSG"] .. (FISConfig.leaveMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
       end
     else
       print(L["MSG_PREFIX"] .. L["SHARE_STARTING"])
