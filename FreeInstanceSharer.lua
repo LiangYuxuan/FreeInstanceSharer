@@ -2,13 +2,14 @@ local _, addon = ...
 local L = addon.L
 
 local defaultConfig = {
-  ["enable"] = true, -- 启动时启用
+  ["enable"] = false, -- 启动时启用
+  ["onlyInvite"] = false, -- 极简模式（只启用自动延长锁定、密语进组）
   ["autoExtend"] = true, -- 自动延长锁定
-  ["checkInterval"] = 0.5, -- 检查间隔
   ["autoInvite"] = true, -- 密语进组
   ["autoInviteMsg"] = "123", -- 密语进组信息
   ["autoInviteBN"] = true, -- 战网密语进组
   ["autoInviteBNMsg"] = "123", -- 战网密语进组信息
+  ["checkInterval"] = 0.5, -- 检查间隔
   ["autoQueue"] = true, -- 进组申请排队
   ["maxWaitingTime"] = 30, -- 最长在组等待时间 (0 - 无限制)
   ["autoLeave"] = true, -- 检查成员位置并退组
@@ -54,31 +55,33 @@ eventFrame:SetScript("OnEvent", function (self, event, ...)
 end)
 
 function eventFrame:OnUpdate (elapsed)
-  timeElapsed = timeElapsed + elapsed
-  if FISConfig.enable and timeElapsed >= FISConfig.checkInterval then
-    timeElapsed = 0
-    if status == 1 then
-      -- check queue
-      if #queue > 0 then
-        local name = queue[1]
-        table.remove(queue, 1)
-        self.inviteToGroup(self, name)
-      end
-    elseif status == 3 then
-      -- check max waiting time
-      if FISConfig.maxWaitingTime and time() - invitedTime >= FISConfig.maxWaitingTime then
-        self.leaveGroup(self)
-      end
+  if not FISConfig.onlyInvite then
+    timeElapsed = timeElapsed + elapsed
+    if FISConfig.enable and timeElapsed >= FISConfig.checkInterval then
+      timeElapsed = 0
+      if status == 1 then
+        -- check queue
+        if #queue > 0 then
+          local name = queue[1]
+          table.remove(queue, 1)
+          self.inviteToGroup(self, name)
+        end
+      elseif status == 3 then
+        -- check max waiting time
+        if FISConfig.maxWaitingTime and time() - invitedTime >= FISConfig.maxWaitingTime then
+          self.leaveGroup(self)
+        end
 
-      -- check player place
-      if FISConfig.autoLeave then
-        local posY, posX, posZ, instanceID = UnitPosition("party1")
-        if instanceID then
-          local ID
-          for _, ID in pairs(autoLeaveInstanceMapID) do
-            if instanceID == ID then
-              self.leaveGroup(self)
-              break
+        -- check player place
+        if FISConfig.autoLeave then
+          local posY, posX, posZ, instanceID = UnitPosition("party1")
+          if instanceID then
+            local ID
+            for _, ID in pairs(autoLeaveInstanceMapID) do
+              if instanceID == ID then
+                self.leaveGroup(self)
+                break
+              end
             end
           end
         end
@@ -101,16 +104,23 @@ end
 function eventFrame:printStatus ()
   if FISConfig.enable then
     if status then
-      print(L["MSG_PREFIX"] .. L["SHARE_STARTED"])
-      print(L["AUTO_EXTEND"] .. (FISConfig.autoExtend and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-      print(L["CHECK_INVAL"] .. FISConfig.checkInterval .. "s")
-      print(L["AUTO_INVITE"] .. (FISConfig.autoInvite and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteMsg))
-      print(L["AUTO_INVITE_BN"] .. (FISConfig.autoInviteBN and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteBNMsg))
-      print(L["AUTO_QUEUE"] .. (FISConfig.autoQueue and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-      print(L["MAX_TIME"] .. FISConfig.maxWaitingTime .. "s")
-      print(L["AUTO_LEAVE"] .. (FISConfig.autoLeave and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-      print(L["SHOW_WELCOME_MSG"] .. (FISConfig.welcomeMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
-      print(L["SHOW_LEAVE_MSG"] .. (FISConfig.leaveMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+      if FISConfig.onlyInvite then
+        print(L["MSG_PREFIX"] .. L["ONLY_INVITE"])
+        print(L["AUTO_EXTEND"] .. (FISConfig.autoExtend and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+        print(L["AUTO_INVITE"] .. (FISConfig.autoInvite and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteMsg))
+        print(L["AUTO_INVITE_BN"] .. (FISConfig.autoInviteBN and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteBNMsg))
+      else
+        print(L["MSG_PREFIX"] .. L["SHARE_STARTED"])
+        print(L["AUTO_EXTEND"] .. (FISConfig.autoExtend and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+        print(L["CHECK_INVAL"] .. FISConfig.checkInterval .. "s")
+        print(L["AUTO_INVITE"] .. (FISConfig.autoInvite and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteMsg))
+        print(L["AUTO_INVITE_BN"] .. (FISConfig.autoInviteBN and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteBNMsg))
+        print(L["AUTO_QUEUE"] .. (FISConfig.autoQueue and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+        print(L["MAX_TIME"] .. FISConfig.maxWaitingTime .. "s")
+        print(L["AUTO_LEAVE"] .. (FISConfig.autoLeave and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+        print(L["SHOW_WELCOME_MSG"] .. (FISConfig.welcomeMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+        print(L["SHOW_LEAVE_MSG"] .. (FISConfig.leaveMsg and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
+      end
     else
       print(L["MSG_PREFIX"] .. L["SHARE_STARTING"])
     end
@@ -123,7 +133,7 @@ end
 -- return nil - not enabled 0 - success 1 - fail(exists)
 function eventFrame:addToQueue (name)
   if FISConfig.enable then
-    if FISConfig.autoQueue then
+    if not FISConfig.onlyInvite and FISConfig.autoQueue then
       local flag, curr = false
       for _, curr in pairs(queue) do
         if curr == name then
@@ -151,7 +161,7 @@ function eventFrame:inviteToGroup (name)
     SetLegacyRaidDifficultyID(4) -- 旧世副本难度25人普通
     ResetInstances()
     InviteUnit(name)
-    if FISConfig.autoQueue then
+    if not FISConfig.onlyInvite and FISConfig.autoQueue then
       groupRosterUpdateTimes = 0
       status = 2
     else
@@ -193,10 +203,13 @@ function eventFrame:leaveGroup ()
 end
 
 function eventFrame:slashCmdHandler (message, editbox)
-  -- TODO: not only change enable
   -- TODO: Opition Page
   FISConfig.enable = not FISConfig.enable
+  status = 0
   self.printStatus(self)
+  if FISConfig.enable then
+    RequestRaidInfo()
+  end
 end
 
 function eventFrame:PLAYER_ENTERING_WORLD ()
@@ -254,20 +267,22 @@ end
 
 function eventFrame:GROUP_ROSTER_UPDATE ()
   -- NOTE: before inviting: 2 times, accepted or rejected: 1 times, leaving party: 3 times
-  groupRosterUpdateTimes = groupRosterUpdateTimes + 1
-  if groupRosterUpdateTimes > 2 then
-    if status == 2 then
-      if GetNumGroupMembers() > 1 then
-        -- accepted
-        self.playerInvited(self)
-      else
-        -- rejected
-        self.playerRejected(self)
-      end
-    elseif status == 3 then
-      if not IsInGroup() or GetNumGroupMembers() == 1 then
-        -- player leaved
-        self.playerLeaved(self)
+  if not FISConfig.onlyInvite and FISConfig.autoQueue then
+    groupRosterUpdateTimes = groupRosterUpdateTimes + 1
+    if groupRosterUpdateTimes > 2 then
+      if status == 2 then
+        if GetNumGroupMembers() > 1 then
+          -- accepted
+          self.playerInvited(self)
+        else
+          -- rejected
+          self.playerRejected(self)
+        end
+      elseif status == 3 then
+        if not IsInGroup() or GetNumGroupMembers() == 1 then
+          -- player leaved
+          self.playerLeaved(self)
+        end
       end
     end
   end
@@ -276,14 +291,16 @@ end
 function eventFrame:CHAT_MSG_PARTY (...)
   local message = ...
 
-  local isTenPlayer = string.find(message, "10")
-  local isHeroic = string.find(message, "H") or string.find(message, "h")
+  if not FISConfig.onlyInvite and FISConfig.autoQueue then
+    local isTenPlayer = string.find(message, "10")
+    local isHeroic = string.find(message, "H") or string.find(message, "h")
 
-  local RaidDifficulty = isHeroic and 15 or 14
-  local LegacyRaidDifficulty = isHeroic and (isTenPlayer and 5 or 6) or (isTenPlayer and 3 or 4)
+    local RaidDifficulty = isHeroic and 15 or 14
+    local LegacyRaidDifficulty = isHeroic and (isTenPlayer and 5 or 6) or (isTenPlayer and 3 or 4)
 
-  SetRaidDifficultyID(RaidDifficulty)
-  SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
+    SetRaidDifficultyID(RaidDifficulty)
+    SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
+  end
 end
 
 SLASH_FIS1 = "/fis"

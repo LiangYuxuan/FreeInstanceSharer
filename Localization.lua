@@ -18,6 +18,7 @@ if true then
     ["SHARE_STARTING"] = "|cFFFFFF00正在准备|r分享。",
     ["SHARE_STARTED"] = "|cFF00FF00开始|r分享。",
     ["SHARE_STOP"] = "|cFFFF0000停止|r分享。",
+    ["ONLY_INVITE"] = "|cFF00FF00极简模式|r。",
     ["TEXT_ENABLE"] = "|cFF00FF00启用|r",
     ["TEXT_DISABLE"] = "|cFFFF0000停用|r",
     ["AUTO_EXTEND"] = "自动延长锁定：",
