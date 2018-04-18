@@ -1,9 +1,3 @@
---------------------
--- Localization.lua
---
--- 2017/12/11
---------------------
-
 local _, addon = ...
 
 addon.L = {
@@ -14,11 +8,14 @@ addon.L = {
 -- if GetLocale() == "zhCN" then
 if true then
   addon.L = {
+    ["TITLE"] = "|cFF70B8FF便利CD分享|r",
+    ["DESC"] = "提供自动组队、自动排队、自动退组等功能，便利地共享副本CD。",
+    ["SETTING"] = "设置",
     ["MSG_PREFIX"] = "|cFF70B8FF免费CD分享|r：",
     ["SHARE_STARTING"] = "|cFFFFFF00正在准备|r分享。",
     ["SHARE_STARTED"] = "|cFF00FF00开始|r分享。",
     ["SHARE_STOP"] = "|cFFFF0000停止|r分享。",
-    ["ONLY_INVITE"] = "|cFF00FF00极简模式|r。",
+    ["INVITE_ONLY"] = "|cFF00FF00极简模式|r。",
     ["TEXT_ENABLE"] = "|cFF00FF00启用|r",
     ["TEXT_DISABLE"] = "|cFFFF0000停用|r",
     ["AUTO_EXTEND"] = "自动延长锁定：",

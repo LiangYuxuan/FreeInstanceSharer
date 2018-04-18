@@ -1,10 +1,13 @@
 ## Interface: 70300
 ## Version: 2.00
 ## Title: |cFF70B8FFFree Instance Sharer|r
-## Title-zhCN: |cFF70B8FF免费CD分享|r
-## Notes: Share your saved instance to others. Using `/fis` to config.
-## Notes-zhCN: 便利地共享副本CD。使用`/fis`以配置。
+## Title-zhCN: |cFF70B8FF便利CD分享|r
+## Notes: Simply sharing your saved instance to others.
+## Notes-zhCN: 提供自动组队、自动排队、自动退组等功能，便利地共享副本CD。
 ## SavedVariablesPerCharacter: FISConfig
+
+Includes\InterfaceOptionPage-1.0.lua
 
 Localization.lua
 FreeInstanceSharer.lua
+ConfigFrame.lua

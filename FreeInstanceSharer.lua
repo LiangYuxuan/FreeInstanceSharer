@@ -3,7 +3,7 @@ local L = addon.L
 
 local defaultConfig = {
   ["enable"] = false, -- 启动时启用
-  ["onlyInvite"] = false, -- 极简模式（只启用防AFK、自动延长锁定、密语进组）
+  ["inviteOnly"] = false, -- 极简模式（只启用防AFK、自动延长锁定、密语进组）
   ["preventAFK"] = true, -- 防AFK
   ["autoExtend"] = true, -- 自动延长锁定
   ["autoInvite"] = true, -- 密语进组
@@ -57,7 +57,7 @@ eventFrame:SetScript("OnEvent", function (self, event, ...)
 end)
 
 function eventFrame:OnUpdate (elapsed)
-  if not FISConfig.onlyInvite then
+  if not FISConfig.inviteOnly then
     timeElapsed = timeElapsed + elapsed
     if FISConfig.enable and timeElapsed >= FISConfig.checkInterval then
       timeElapsed = 0
@@ -106,8 +106,8 @@ end
 function eventFrame:printStatus ()
   if FISConfig.enable then
     if status then
-      if FISConfig.onlyInvite then
-        print(L["MSG_PREFIX"] .. L["ONLY_INVITE"])
+      if FISConfig.inviteOnly then
+        print(L["MSG_PREFIX"] .. L["INVITE_ONLY"])
         print(L["AUTO_EXTEND"] .. (FISConfig.autoExtend and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]))
         print(L["AUTO_INVITE"] .. (FISConfig.autoInvite and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteMsg))
         print(L["AUTO_INVITE_BN"] .. (FISConfig.autoInviteBN and L["TEXT_ENABLE"] or L["TEXT_DISABLE"]) .. " " .. string.format(L["AUTO_INVITE_MSG"], FISConfig.autoInviteBNMsg))
@@ -135,7 +135,7 @@ end
 -- return nil - not enabled 0 - success 1 - fail(exists)
 function eventFrame:addToQueue (name)
   if FISConfig.enable then
-    if not FISConfig.onlyInvite and FISConfig.autoQueue then
+    if not FISConfig.inviteOnly and FISConfig.autoQueue then
       local flag, curr = false
       for _, curr in pairs(queue) do
         if curr == name then
@@ -163,7 +163,7 @@ function eventFrame:inviteToGroup (name)
     SetLegacyRaidDifficultyID(4) -- 旧世副本难度25人普通
     ResetInstances()
     InviteUnit(name)
-    if not FISConfig.onlyInvite and FISConfig.autoQueue then
+    if not FISConfig.inviteOnly and FISConfig.autoQueue then
       groupRosterUpdateTimes = 0
       status = 2
     else
@@ -276,7 +276,7 @@ end
 
 function eventFrame:GROUP_ROSTER_UPDATE ()
   -- NOTE: before inviting: 2 times, accepted or rejected: 1 times, leaving party: 3 times
-  if not FISConfig.onlyInvite and FISConfig.autoQueue then
+  if not FISConfig.inviteOnly and FISConfig.autoQueue then
     groupRosterUpdateTimes = groupRosterUpdateTimes + 1
     if groupRosterUpdateTimes > 2 then
       if status == 2 then
@@ -300,7 +300,7 @@ end
 function eventFrame:CHAT_MSG_PARTY (...)
   local message = ...
 
-  if not FISConfig.onlyInvite and FISConfig.autoQueue then
+  if not FISConfig.inviteOnly and FISConfig.autoQueue then
     local isTenPlayer = string.find(message, "10")
     local isHeroic = string.find(message, "H") or string.find(message, "h")
 
