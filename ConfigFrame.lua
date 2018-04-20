@@ -64,37 +64,82 @@ end
 local autoInviteMsg = frame:CreateEditBox()
 table.insert(frames.inviteOnly, autoInviteMsg)
 autoInviteMsg:SetPoint("LEFT", group[5].text, "RIGHT", 10, 0)
+function autoInviteMsg:OnTextCommit(text)
+  FISConfig.autoInviteMsg = text
+end
+function autoInviteMsg:OnTextCancel()
+  return FISConfig.autoInviteMsg
+end
 
 local autoInviteBNMsg = frame:CreateEditBox()
 table.insert(frames.inviteOnly, autoInviteBNMsg)
 autoInviteBNMsg:SetPoint("LEFT", group[6].text, "RIGHT", 10, 0)
+function autoInviteBNMsg:OnTextCommit(text)
+  FISConfig.autoInviteBNMsg = text
+end
+function autoInviteBNMsg:OnTextCancel()
+  return FISConfig.autoInviteBNMsg
+end
 
 local checkInterval = frame:CreateEditBox()
 table.insert(frames.others, checkInterval)
 checkInterval:SetNumeric(true)
 checkInterval:SetWidth(100)
 checkInterval:SetPoint("LEFT", group[7].text, "RIGHT", 10, 0)
+function checkInterval:OnTextCommit(text)
+  FISConfig.checkInterval = text
+end
+function checkInterval:OnTextCancel()
+  return FISConfig.checkInterval
+end
 
 local queueMsg = frame:CreateEditBox()
 table.insert(frames.others, queueMsg)
 queueMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 queueMsg:SetPoint("LEFT", group[8].text, "RIGHT", 10, 0)
+function queueMsg:OnTextCommit(text)
+  FISConfig.queueMsg = text
+end
+function queueMsg:OnTextCancel()
+  return FISConfig.queueMsg
+end
 
 local maxWaitingTime = frame:CreateEditBox()
 table.insert(frames.others, maxWaitingTime)
 maxWaitingTime:SetNumeric(true)
 maxWaitingTime:SetWidth(100)
 maxWaitingTime:SetPoint("LEFT", group[9].text, "RIGHT", 10, 0)
+function maxWaitingTime:OnTextCommit(text)
+  FISConfig.maxWaitingTime = text
+end
+function maxWaitingTime:OnTextCancel()
+  return FISConfig.maxWaitingTime
+end
 
 local welcomeMsg = frame:CreateEditBox()
 table.insert(frames.others, welcomeMsg)
 welcomeMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 welcomeMsg:SetPoint("LEFT", group[11].text, "RIGHT", 10, 0)
+function welcomeMsg:OnTextCommit(text)
+  FISConfig.welcomeMsg = text
+end
+function welcomeMsg:OnTextCancel()
+  return FISConfig.welcomeMsg
+end
 
 local leaveMsg = frame:CreateEditBox()
 table.insert(frames.others, leaveMsg)
 leaveMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 leaveMsg:SetPoint("LEFT", group[12].text, "RIGHT", 10, 0)
+function leaveMsg:OnTextCommit(text)
+  FISConfig.leaveMsg = text
+end
+function leaveMsg:OnTextCancel()
+  return FISConfig.leaveMsg
+end
+
+local textReplace = frame:CreateFontString(L["TEXT_REPLACE"], "ARTWORK", "GameFontHighlightSmallLeftTop")
+textReplace:SetPoint("TOPLEFT", group[12], "BOTTOMLEFT", 0, 10)
 
 -- Self defined function
 addon.eventFrame.ON_PLAYER_ENTERING_WORLD = function ()

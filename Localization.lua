@@ -31,5 +31,6 @@ if true then
     ["AUTO_LEAVE"] = "检查成员位置并自动退组",
     ["WELCOME_MSG"] = "进组信息",
     ["LEAVE_MSG"] = "退组信息",
+    ["TEXT_REPLACE"] = "暂不可用", -- TODO
   }
 end
