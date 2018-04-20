@@ -12,10 +12,12 @@ local defaultConfig = {
   ["autoInviteBNMsg"] = "123", -- 战网密语进组信息
   ["checkInterval"] = 500, -- 检查间隔
   ["autoQueue"] = true, -- 自动排队
-  ["queueMsg"] = "你已进入队列，排在第 %d 名。", -- 进入队列提示
   ["maxWaitingTime"] = 30, -- 最长在组等待时间 (0 - 无限制)
   ["autoLeave"] = true, -- 检查成员位置并退组
-  ["welcomeMsg"] = "你现在有 30 秒的进本时间。默认难度为25人普通，在队伍发送 10 切换为10人模式，发送 H 切换为英雄模式。", -- 进组时发送的信息
+  ["enterQueueMsg"] = "你已进入队列，排在第 QCURR 名。", -- 进入队列提示
+  -- ["queryQueueMsg"] = "", -- 查询队列位置提示
+  -- ["leaveQueueMsg"] = "", -- 离开队列提示
+  ["welcomeMsg"] = "你现在有 MTIME 秒的进本时间。默认难度为25人普通，在队伍发送 10 切换为10人模式，发送 H 切换为英雄模式。", -- 进组时发送的信息
   ["leaveMsg"] = "已将队长转交，刷无敌请自行在副本内修改难度为英雄（如果未成功请在副本外设置自己为25普通在来一次）。", -- 退组时发送的信息
 }
 
@@ -121,6 +123,21 @@ function eventFrame:printStatus ()
   end
 end
 
+-- format message string
+-- return formated string
+function eventFrame:format (message, qCurr, qLen, mTime)
+  if qCurr then
+    message = string.gsub(message, "QCURR", qCurr)
+  end
+  if qLen then
+    message = string.gsub(message, "QLEN", qLen)
+  end
+  if mTime then
+    message = string.gsub(message, "MTIME", mTime)
+  end
+  return message
+end
+
 -- add a player to queue
 -- return nil - not enabled 0 - success 1 - fail(exists)
 function eventFrame:addToQueue (name)
@@ -134,8 +151,9 @@ function eventFrame:addToQueue (name)
         end
       end
       if flag == false then
-        if FISConfig.queueMsg and FISConfig.queueMsg ~= "" then
-          SendChatMessage(string.format(FISConfig.queueMsg, #queue + 1), "WHISPER", nil, name)
+        if FISConfig.enterQueueMsg and FISConfig.enterQueueMsg ~= "" then
+          local message = self.format(self, FISConfig.enterQueueMsg, #queue + 1, #queue + 1, FISConfig.maxWaitingTime)
+          SendChatMessage(message, "WHISPER", nil, name)
         end
         table.insert(queue, name)
       end
@@ -169,7 +187,8 @@ end
 function eventFrame:playerInvited ()
   invitedTime = time()
   if FISConfig.welcomeMsg and FISConfig.welcomeMsg ~= "" then
-    SendChatMessage(FISConfig.welcomeMsg, "PARTY")
+    local message = self.format(self, FISConfig.welcomeMsg, nil, #queue, FISConfig.maxWaitingTime)
+    SendChatMessage(message, "PARTY")
   end
   status = 3
 end
@@ -191,7 +210,8 @@ end
 function eventFrame:leaveGroup ()
   if status == 3 then
     if FISConfig.leaveMsg and FISConfig.leaveMsg ~= "" then
-      SendChatMessage(FISConfig.leaveMsg, "PARTY")
+      local message = self.format(self, FISConfig.leaveMsg, nil, #queue, FISConfig.maxWaitingTime)
+      SendChatMessage(message, "PARTY")
     end
     -- set status first to prevent GROUP_ROSTER_UPDATE handle
     status = 1

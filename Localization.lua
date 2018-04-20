@@ -26,11 +26,11 @@ if true then
     ["AUTO_INVITE"] = "密语自动邀请",
     ["AUTO_INVITE_BN"] = "战网密语自动邀请",
     ["CHECK_INVAL"] = "检查时间间隔（毫秒）",
-    ["AUTO_QUEUE"] = "自动排队",
+    ["AUTO_QUEUE"] = "自动进入队列",
     ["MAX_TIME"] = "最长等待进本时间（0-无限制）（秒）",
     ["AUTO_LEAVE"] = "检查成员位置并自动退组",
     ["WELCOME_MSG"] = "进组信息",
     ["LEAVE_MSG"] = "退组信息",
-    ["TEXT_REPLACE"] = "暂不可用", -- TODO
+    ["TEXT_REPLACE"] = "自动排队信息、进组信息、退组信息可以含有以下字符串，发送时将被自动替换为对应的变量\nQCURR - 当前玩家在队列的位置，只在自动排队信息中有效。\nQLEN - 队列长度。\nMTIME - 最长等待进本时间。",
   }
 end

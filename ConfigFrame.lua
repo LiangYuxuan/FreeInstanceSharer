@@ -93,15 +93,15 @@ function checkInterval:OnTextCancel()
   return FISConfig.checkInterval
 end
 
-local queueMsg = frame:CreateEditBox()
-table.insert(frames.others, queueMsg)
-queueMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
-queueMsg:SetPoint("LEFT", group[8].text, "RIGHT", 10, 0)
-function queueMsg:OnTextCommit(text)
-  FISConfig.queueMsg = text
+local enterQueueMsg = frame:CreateEditBox()
+table.insert(frames.others, enterQueueMsg)
+enterQueueMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
+enterQueueMsg:SetPoint("LEFT", group[8].text, "RIGHT", 10, 0)
+function enterQueueMsg:OnTextCommit(text)
+  FISConfig.enterQueueMsg = text
 end
-function queueMsg:OnTextCancel()
-  return FISConfig.queueMsg
+function enterQueueMsg:OnTextCancel()
+  return FISConfig.enterQueueMsg
 end
 
 local maxWaitingTime = frame:CreateEditBox()
@@ -146,7 +146,7 @@ addon.eventFrame.ON_PLAYER_ENTERING_WORLD = function ()
   autoInviteMsg:SetText(FISConfig.autoInviteMsg)
   autoInviteBNMsg:SetText(FISConfig.autoInviteBNMsg)
   checkInterval:SetNumber(FISConfig.checkInterval)
-  queueMsg:SetText(FISConfig.queueMsg)
+  enterQueueMsg:SetText(FISConfig.enterQueueMsg)
   maxWaitingTime:SetNumber(FISConfig.maxWaitingTime)
   welcomeMsg:SetText(FISConfig.welcomeMsg)
   leaveMsg:SetText(FISConfig.leaveMsg)
