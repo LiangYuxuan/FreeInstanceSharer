@@ -9,34 +9,24 @@ Share saved instance by invite other players by in-game whisper or battle.net me
 * Invite player who send whisper to you.
 * Auto extending saved instance.
 * Auto change difficulty.
+* Queue when multiple player whisper to you.
+* Set max waiting time.
+* Customize your own message.
 
-## Usage
+## Installation
 
 Copy `FreeInstanceSharer` to `Interface/Addons`, and enable this addon in game.
 
-## Configuration
-
-```
-local enable = true -- enable when started (will be changed to save the status of last login)
-local autoDifficulty = true -- auto change difficulty
-local autoExtend = true -- auto extending saved instance
-local autoInvite = true -- invite by in-game whisper
-local autoInviteMsg = "123" -- in-game whisper message
-local autoInviteBN = true -- invite by battle.net whisper
-local autoInviteBNMsg = "123" -- battle.net whisper message
-local autoLeave = true -- auto leave party when receiving message in party channel
-```
-
-Modify above vars in `FreeInstanceSharer.lua`.
+Use slash command `\fis` to quickly enable and disable this addon.
 
 ## Future plans
 
-- [ ] Add queue
-- [ ] In-game settings
+- [ ] Allow query queue position and leave query.
+- [ ] Localization for more language.
 
 ## Contribution
 
-PR to this project.
+Pull Request to this project.
 
 ## License
 
