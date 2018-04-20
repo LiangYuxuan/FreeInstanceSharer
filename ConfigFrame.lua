@@ -87,7 +87,7 @@ checkInterval:SetNumeric(true)
 checkInterval:SetWidth(100)
 checkInterval:SetPoint("LEFT", group[7].text, "RIGHT", 10, 0)
 function checkInterval:OnTextCommit(text)
-  FISConfig.checkInterval = text
+  FISConfig.checkInterval = tonumber(text)
 end
 function checkInterval:OnTextCancel()
   return FISConfig.checkInterval
@@ -110,7 +110,7 @@ maxWaitingTime:SetNumeric(true)
 maxWaitingTime:SetWidth(100)
 maxWaitingTime:SetPoint("LEFT", group[9].text, "RIGHT", 10, 0)
 function maxWaitingTime:OnTextCommit(text)
-  FISConfig.maxWaitingTime = text
+  FISConfig.maxWaitingTime = tonumber(text)
 end
 function maxWaitingTime:OnTextCancel()
   return FISConfig.maxWaitingTime
@@ -138,8 +138,10 @@ function leaveMsg:OnTextCancel()
   return FISConfig.leaveMsg
 end
 
-local textReplace = frame:CreateFontString(L["TEXT_REPLACE"], "ARTWORK", "GameFontHighlightSmallLeftTop")
-textReplace:SetPoint("TOPLEFT", group[12], "BOTTOMLEFT", 0, 10)
+local textReplace = frame:CreateFontString("TextReplaceFrame", "ARTWORK", "GameFontHighlightSmallLeftTop")
+textReplace:SetText(L["TEXT_REPLACE"])
+textReplace:SetPoint("TOPLEFT", group[12], "BOTTOMLEFT", 0, 0)
+textReplace:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 
 -- Self defined function
 addon.eventFrame.ON_PLAYER_ENTERING_WORLD = function ()
