@@ -22,6 +22,7 @@ local defaultConfig = {
 }
 
 local autoLeaveInstanceMapID = {
+  -- 团队副本
   531, -- 安其拉神殿
   564, -- 黑暗神殿
   603, -- 奥杜尔
@@ -36,13 +37,16 @@ local autoLeaveInstanceMapID = {
   1136, -- 决战奥格瑞玛
   1205, -- 黑石铸造厂
   1448, -- 地狱火堡垒
+
+  -- 地下城
+  1651, -- 重返卡拉赞
 }
 
-local status = 0 -- 运行状态 0 - 未就绪 1 - 空闲 2 - 正在邀请 3 - 已经进组
-local timeElapsed = 0 -- 上次检查时间间隔
-local queue = {} -- 排队队列
-local invitedTime -- 接受邀请的时间
-local groupRosterUpdateTimes -- GROUP_ROSTER_UPDATE 触发次数
+local status = 0 -- 0 - before init 1 - idle 2 - inviting 3 - invited
+local timeElapsed = 0 -- time elapsed from previous OnUpdate
+local queue = {}
+local invitedTime
+local groupRosterUpdateTimes -- GROUP_ROSTER_UPDATE trigger times
 
 local eventFrame = CreateFrame("Frame")
 addon.eventFrame = eventFrame
@@ -80,7 +84,7 @@ function eventFrame:OnUpdate (elapsed)
 
         -- check player place
         if FISConfig.autoLeave then
-          local posY, posX, posZ, instanceID = UnitPosition("party1")
+          local _, _, _, instanceID = UnitPosition("party1")
           if instanceID then
             local ID
             for _, ID in pairs(autoLeaveInstanceMapID) do
@@ -221,7 +225,6 @@ function eventFrame:leaveGroup ()
 end
 
 function eventFrame:slashCmdHandler (message, editbox)
-  -- TODO: Opition Page
   FISConfig.enable = not FISConfig.enable
   status = 0
   self.printStatus(self)
@@ -242,15 +245,20 @@ function eventFrame:PLAYER_ENTERING_WORLD ()
       end
     end
   end
+  -- function defined in ConfigFrame.lua
   self.ON_PLAYER_ENTERING_WORLD(self)
 end
 
 function eventFrame:UPDATE_INSTANCE_INFO ()
   if FISConfig.enable and FISConfig.autoExtend then
     for i = 1, GetNumSavedInstances() do
-      local _, _, _, _, _, extended = GetSavedInstanceInfo(i)
-      if not extended then
-        SetSavedInstanceExtend(i, true) -- 延长副本锁定
+      local _, instanceID, _, _, _, extended = GetSavedInstanceInfo(i)
+      local ID
+      for _, ID in pairs(autoLeaveInstanceMapID) do
+        if instanceID == ID and not extended then
+          SetSavedInstanceExtend(i, true)
+          break
+        end
       end
     end
   end
