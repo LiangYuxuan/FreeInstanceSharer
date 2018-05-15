@@ -22,6 +22,7 @@ Use slash command `\fis` to quickly enable and disable this addon.
 ## Future plans
 
 - [ ] Allow query queue position and leave query.
+- [ ] Split message config to new page.
 - [ ] Localization for more language.
 
 ## Contribution
