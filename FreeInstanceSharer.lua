@@ -252,13 +252,9 @@ end
 function eventFrame:UPDATE_INSTANCE_INFO ()
   if FISConfig.enable and FISConfig.autoExtend then
     for i = 1, GetNumSavedInstances() do
-      local _, instanceID, _, _, _, extended = GetSavedInstanceInfo(i)
-      local ID
-      for _, ID in pairs(autoLeaveInstanceMapID) do
-        if instanceID == ID and not extended then
-          SetSavedInstanceExtend(i, true)
-          break
-        end
+      local _, _, _, _, _, extended = GetSavedInstanceInfo(i)
+      if not extended then
+        SetSavedInstanceExtend(i, true)
       end
     end
   end
