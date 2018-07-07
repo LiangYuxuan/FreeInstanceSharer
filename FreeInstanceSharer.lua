@@ -19,6 +19,7 @@ local defaultConfig = {
 	-- ["leaveQueueMsg"] = "", -- 离开队列提示
 	["welcomeMsg"] = "你现在有 MTIME 秒的进本时间。默认难度为25人普通，在队伍发送 10 切换为10人模式，发送 H 切换为英雄模式。", -- 进组时发送的信息
 	["leaveMsg"] = "已将队长转交，刷无敌请自行在副本内修改难度为英雄（如果未成功请在副本外设置自己为25普通在来一次）。", -- 退组时发送的信息
+	-- ["fetchErrorMsg"] = "", -- 战网获取角色失败的信息
 }
 
 local autoLeaveInstanceMapID = {
@@ -322,11 +323,15 @@ function eventFrame:CHAT_MSG_PARTY (...)
 	local message = ...
 
 	if not FISConfig.inviteOnly and FISConfig.autoQueue then
-		local isTenPlayer = string.find(message, "10")
-		local isHeroic = string.find(message, "H") or string.find(message, "h")
+		local RaidDifficulty = GetRaidDifficultyID()
+		local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
+		local isTenPlayer = LegacyRaidDifficulty == 5 or LegacyRaidDifficulty == 3
+		local isHeroic = RaidDifficulty == 15
 
-		local RaidDifficulty = isHeroic and 15 or 14
-		local LegacyRaidDifficulty = isHeroic and (isTenPlayer and 5 or 6) or (isTenPlayer and 3 or 4)
+		isTenPlayer = string.find(message, "10")
+		isHeroic = string.find(message, "H") or string.find(message, "h")
+		RaidDifficulty = isHeroic and 15 or 14
+		LegacyRaidDifficulty = isHeroic and (isTenPlayer and 5 or 6) or (isTenPlayer and 3 or 4)
 
 		SetRaidDifficultyID(RaidDifficulty)
 		SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
