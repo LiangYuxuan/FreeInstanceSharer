@@ -2,8 +2,8 @@ local _, addon = ...
 local L = addon.L
 
 local frames = {
-  ["inviteOnly"] = {},
-  ["others"] = {},
+	["inviteOnly"] = {},
+	["others"] = {},
 }
 
 local frame = UICreateInterfaceOptionPage("FISOptionFrame", L["TITLE"], L["DESC"])
@@ -33,52 +33,52 @@ end
 
 function group:OnCheckChanged(value, checked)
 	FISConfig[value] = checked and true or false
-  local curr
+	local curr
 
-  -- Toggle Enable and Disable
-  if value == "enable" then
-    for _, curr in pairs(frames.inviteOnly) do
-      if checked then
-        curr:Enable()
-      else
-        curr:Disable()
-      end
-    end
-  end
-  if value == "inviteOnly" or (value == "enable" and not FISConfig.inviteOnly) then
-    for _, curr in pairs(frames.others) do
-      if (value == "enable" and checked) or (value == "inviteOnly" and not checked) then
-        curr:Enable()
-      else
-        curr:Disable()
-      end
-    end
-  end
+	-- Toggle Enable and Disable
+	if value == "enable" then
+		for _, curr in pairs(frames.inviteOnly) do
+			if checked then
+				curr:Enable()
+			else
+				curr:Disable()
+			end
+		end
+	end
+	if value == "inviteOnly" or (value == "enable" and not FISConfig.inviteOnly) then
+		for _, curr in pairs(frames.others) do
+			if (value == "enable" and checked) or (value == "inviteOnly" and not checked) then
+				curr:Enable()
+			else
+				curr:Disable()
+			end
+		end
+	end
 
-  -- Print Status
-  if value == "enable" or value == "inviteOnly" then
-    addon.eventFrame.printStatus(addon.eventFrame)
-  end
+	-- Print Status
+	if value == "enable" or value == "inviteOnly" then
+		addon.eventFrame.printStatus(addon.eventFrame)
+	end
 end
 
 local autoInviteMsg = frame:CreateEditBox()
 table.insert(frames.inviteOnly, autoInviteMsg)
 autoInviteMsg:SetPoint("LEFT", group[5].text, "RIGHT", 10, 0)
 function autoInviteMsg:OnTextCommit(text)
-  FISConfig.autoInviteMsg = text
+	FISConfig.autoInviteMsg = text
 end
 function autoInviteMsg:OnTextCancel()
-  return FISConfig.autoInviteMsg
+	return FISConfig.autoInviteMsg
 end
 
 local autoInviteBNMsg = frame:CreateEditBox()
 table.insert(frames.inviteOnly, autoInviteBNMsg)
 autoInviteBNMsg:SetPoint("LEFT", group[6].text, "RIGHT", 10, 0)
 function autoInviteBNMsg:OnTextCommit(text)
-  FISConfig.autoInviteBNMsg = text
+	FISConfig.autoInviteBNMsg = text
 end
 function autoInviteBNMsg:OnTextCancel()
-  return FISConfig.autoInviteBNMsg
+	return FISConfig.autoInviteBNMsg
 end
 
 local checkInterval = frame:CreateEditBox()
@@ -87,10 +87,10 @@ checkInterval:SetNumeric(true)
 checkInterval:SetWidth(100)
 checkInterval:SetPoint("LEFT", group[7].text, "RIGHT", 10, 0)
 function checkInterval:OnTextCommit(text)
-  FISConfig.checkInterval = tonumber(text)
+	FISConfig.checkInterval = tonumber(text)
 end
 function checkInterval:OnTextCancel()
-  return FISConfig.checkInterval
+	return FISConfig.checkInterval
 end
 
 local enterQueueMsg = frame:CreateEditBox()
@@ -98,10 +98,10 @@ table.insert(frames.others, enterQueueMsg)
 enterQueueMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 enterQueueMsg:SetPoint("LEFT", group[8].text, "RIGHT", 10, 0)
 function enterQueueMsg:OnTextCommit(text)
-  FISConfig.enterQueueMsg = text
+	FISConfig.enterQueueMsg = text
 end
 function enterQueueMsg:OnTextCancel()
-  return FISConfig.enterQueueMsg
+	return FISConfig.enterQueueMsg
 end
 
 local maxWaitingTime = frame:CreateEditBox()
@@ -110,10 +110,10 @@ maxWaitingTime:SetNumeric(true)
 maxWaitingTime:SetWidth(100)
 maxWaitingTime:SetPoint("LEFT", group[9].text, "RIGHT", 10, 0)
 function maxWaitingTime:OnTextCommit(text)
-  FISConfig.maxWaitingTime = tonumber(text)
+	FISConfig.maxWaitingTime = tonumber(text)
 end
 function maxWaitingTime:OnTextCancel()
-  return FISConfig.maxWaitingTime
+	return FISConfig.maxWaitingTime
 end
 
 local welcomeMsg = frame:CreateEditBox()
@@ -121,10 +121,10 @@ table.insert(frames.others, welcomeMsg)
 welcomeMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 welcomeMsg:SetPoint("LEFT", group[11].text, "RIGHT", 10, 0)
 function welcomeMsg:OnTextCommit(text)
-  FISConfig.welcomeMsg = text
+	FISConfig.welcomeMsg = text
 end
 function welcomeMsg:OnTextCancel()
-  return FISConfig.welcomeMsg
+	return FISConfig.welcomeMsg
 end
 
 local leaveMsg = frame:CreateEditBox()
@@ -132,10 +132,10 @@ table.insert(frames.others, leaveMsg)
 leaveMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 leaveMsg:SetPoint("LEFT", group[12].text, "RIGHT", 10, 0)
 function leaveMsg:OnTextCommit(text)
-  FISConfig.leaveMsg = text
+	FISConfig.leaveMsg = text
 end
 function leaveMsg:OnTextCancel()
-  return FISConfig.leaveMsg
+	return FISConfig.leaveMsg
 end
 
 local textReplace = frame:CreateFontString("TextReplaceFrame", "ARTWORK", "GameFontHighlightSmallLeftTop")
@@ -145,11 +145,11 @@ textReplace:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 
 -- Self defined function
 addon.eventFrame.ON_PLAYER_ENTERING_WORLD = function ()
-  autoInviteMsg:SetText(FISConfig.autoInviteMsg)
-  autoInviteBNMsg:SetText(FISConfig.autoInviteBNMsg)
-  checkInterval:SetNumber(FISConfig.checkInterval)
-  enterQueueMsg:SetText(FISConfig.enterQueueMsg)
-  maxWaitingTime:SetNumber(FISConfig.maxWaitingTime)
-  welcomeMsg:SetText(FISConfig.welcomeMsg)
-  leaveMsg:SetText(FISConfig.leaveMsg)
+	autoInviteMsg:SetText(FISConfig.autoInviteMsg)
+	autoInviteBNMsg:SetText(FISConfig.autoInviteBNMsg)
+	checkInterval:SetNumber(FISConfig.checkInterval)
+	enterQueueMsg:SetText(FISConfig.enterQueueMsg)
+	maxWaitingTime:SetNumber(FISConfig.maxWaitingTime)
+	welcomeMsg:SetText(FISConfig.welcomeMsg)
+	leaveMsg:SetText(FISConfig.leaveMsg)
 end
