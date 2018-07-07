@@ -15,11 +15,11 @@ local defaultConfig = {
 	["maxWaitingTime"] = 30, -- 最长在组等待时间 (0 - 无限制)
 	["autoLeave"] = true, -- 检查成员位置并退组
 	["enterQueueMsg"] = "你已进入队列，排在第 QCURR 名。", -- 进入队列提示
-	-- ["queryQueueMsg"] = "", -- 查询队列位置提示
+	["fetchErrorMsg"] = "无法从战网获取你的角色信息，请尝试游戏内密语 NAME 。", -- 战网获取角色失败的信息
+	["queryQueueMsg"] = "你已进入队列，排在第 QCURR 名。", -- 查询队列位置提示
 	-- ["leaveQueueMsg"] = "", -- 离开队列提示
 	["welcomeMsg"] = "你现在有 MTIME 秒的进本时间。默认难度为25人普通，在队伍发送 10 切换为10人模式，发送 H 切换为英雄模式。", -- 进组时发送的信息
 	["leaveMsg"] = "已将队长转交，刷无敌请自行在副本内修改难度为英雄（如果未成功请在副本外设置自己为25普通在来一次）。", -- 退组时发送的信息
-	-- ["fetchErrorMsg"] = "", -- 战网获取角色失败的信息
 }
 
 local autoLeaveInstanceMapID = {
@@ -130,16 +130,11 @@ end
 
 -- format message string
 -- return formated string
-function eventFrame:format (message, qCurr, qLen, mTime)
-	if qCurr then
-		message = string.gsub(message, "QCURR", qCurr)
-	end
-	if qLen then
-		message = string.gsub(message, "QLEN", qLen)
-	end
-	if mTime then
-		message = string.gsub(message, "MTIME", mTime)
-	end
+function eventFrame:format (message, curr)
+	message = string.gsub(message, "QCURR", curr)
+	message = string.gsub(message, "QLEN", #queue)
+	message = string.gsub(message, "MTIME", FISConfig.maxWaitingTime)
+	message = string.gsub(message, "NAME", UnitName("player") .. "-" .. GetRealmName())
 	return message
 end
 
@@ -148,19 +143,24 @@ end
 function eventFrame:addToQueue (name)
 	if FISConfig.enable then
 		if not FISConfig.inviteOnly and FISConfig.autoQueue then
-			local flag, curr = false
-			for _, curr in pairs(queue) do
+			local flag, index, curr = false
+			for index, curr in pairs(queue) do
 				if curr == name then
 					flag = true
 					break
 				end
 			end
 			if flag == false then
+				table.insert(queue, name)
 				if FISConfig.enterQueueMsg and FISConfig.enterQueueMsg ~= "" then
-					local message = self.format(self, FISConfig.enterQueueMsg, #queue + 1, #queue + 1, FISConfig.maxWaitingTime)
+					local message = self.format(self, FISConfig.enterQueueMsg, #queue)
 					SendChatMessage(message, "WHISPER", nil, name)
 				end
-				table.insert(queue, name)
+			else
+				if FISConfig.queryQueueMsg and FISConfig.queryQueueMsg ~= "" then
+					local message = self.format(self, FISConfig.queryQueueMsg, index)
+					SendChatMessage(message, "WHISPER", nil, name)
+				end
 			end
 			return not flag
 		else
@@ -192,7 +192,7 @@ end
 function eventFrame:playerInvited ()
 	invitedTime = time()
 	if FISConfig.welcomeMsg and FISConfig.welcomeMsg ~= "" then
-		local message = self.format(self, FISConfig.welcomeMsg, nil, #queue, FISConfig.maxWaitingTime)
+		local message = self.format(self, FISConfig.welcomeMsg)
 		SendChatMessage(message, "PARTY")
 	end
 	status = 3
@@ -215,7 +215,7 @@ end
 function eventFrame:leaveGroup ()
 	if status == 3 then
 		if FISConfig.leaveMsg and FISConfig.leaveMsg ~= "" then
-			local message = self.format(self, FISConfig.leaveMsg, nil, #queue, FISConfig.maxWaitingTime)
+			local message = self.format(self, FISConfig.leaveMsg)
 			SendChatMessage(message, "PARTY")
 		end
 		-- set status first to prevent GROUP_ROSTER_UPDATE handle
@@ -288,10 +288,15 @@ function eventFrame:CHAT_MSG_BN_WHISPER (...)
 		local _, _, _, _, _, bnetIDGameAccount = BNGetFriendInfoByID(presenceID)
 		local _, characterName, _, realmName = BNGetGameAccountInfo(bnetIDGameAccount)
 
-		local isInviteMsg = message == FISConfig.autoInviteBNMsg
+		if characterName and realmName then
+			local isInviteMsg = message == FISConfig.autoInviteBNMsg
 
-		if FISConfig.autoInviteBN and isInviteMsg then
-			self.addToQueue(self, characterName .. "-" .. realmName)
+			if FISConfig.autoInviteBN and isInviteMsg then
+				self.addToQueue(self, characterName .. "-" .. realmName)
+			end
+		else
+			local message = self.format(FISConfig.fetchErrorMsg, nil)
+			BNSendWhisper(presenceID, message)
 		end
 	end
 end

@@ -23,6 +23,9 @@ table.insert(frames.inviteOnly, group:AddButton(L["AUTO_INVITE_BN"], "autoInvite
 group:AddDummy(L["CHECK_INVAL"], true)
 table.insert(frames.others, group:AddButton(L["AUTO_QUEUE"], "autoQueue"))
 group:AddDummy(L["MAX_TIME"], true)
+-- TODO: Config fetchErrorMsg and queryMsg in ConfigFrame
+group:AddDummy(L["FETCH_ERROR_MSG"], true)
+group:AddDummy(L["QUERY_MSG"], true)
 table.insert(frames.others, group:AddButton(L["AUTO_LEAVE"], "autoLeave"))
 group:AddDummy(L["WELCOME_MSG"], true)
 group:AddDummy(L["LEAVE_MSG"], true)
@@ -116,10 +119,32 @@ function maxWaitingTime:OnTextCancel()
 	return FISConfig.maxWaitingTime
 end
 
+local fetchErrorMsg = frame:CreateEditBox()
+table.insert(frames.others, fetchErrorMsg)
+fetchErrorMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
+fetchErrorMsg:SetPoint("LEFT", group[10].text, "RIGHT", 10, 0)
+function fetchErrorMsg:OnTextCommit(text)
+	FISConfig.fetchErrorMsg = text
+end
+function fetchErrorMsg:OnTextCancel()
+	return FISConfig.fetchErrorMsg
+end
+
+local queryMsg = frame:CreateEditBox()
+table.insert(frames.others, queryMsg)
+queryMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
+queryMsg:SetPoint("LEFT", group[10].text, "RIGHT", 10, 0)
+function queryMsg:OnTextCommit(text)
+	FISConfig.queryMsg = text
+end
+function queryMsg:OnTextCancel()
+	return FISConfig.queryMsg
+end
+
 local welcomeMsg = frame:CreateEditBox()
 table.insert(frames.others, welcomeMsg)
 welcomeMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
-welcomeMsg:SetPoint("LEFT", group[11].text, "RIGHT", 10, 0)
+welcomeMsg:SetPoint("LEFT", group[13].text, "RIGHT", 10, 0)
 function welcomeMsg:OnTextCommit(text)
 	FISConfig.welcomeMsg = text
 end
@@ -130,7 +155,7 @@ end
 local leaveMsg = frame:CreateEditBox()
 table.insert(frames.others, leaveMsg)
 leaveMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
-leaveMsg:SetPoint("LEFT", group[12].text, "RIGHT", 10, 0)
+leaveMsg:SetPoint("LEFT", group[14].text, "RIGHT", 10, 0)
 function leaveMsg:OnTextCommit(text)
 	FISConfig.leaveMsg = text
 end
@@ -140,7 +165,7 @@ end
 
 local textReplace = frame:CreateFontString("TextReplaceFrame", "ARTWORK", "GameFontHighlightSmallLeftTop")
 textReplace:SetText(L["TEXT_REPLACE"])
-textReplace:SetPoint("TOPLEFT", group[12], "BOTTOMLEFT", 0, 0)
+textReplace:SetPoint("TOPLEFT", group[14], "BOTTOMLEFT", 0, 0)
 textReplace:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
 
 -- Self defined function
@@ -150,6 +175,8 @@ addon.eventFrame.ON_PLAYER_ENTERING_WORLD = function ()
 	checkInterval:SetNumber(FISConfig.checkInterval)
 	enterQueueMsg:SetText(FISConfig.enterQueueMsg)
 	maxWaitingTime:SetNumber(FISConfig.maxWaitingTime)
+	fetchErrorMsg:SetText(FISConfig.fetchErrorMsg)
+	queryMsg:SetText(FISConfig.queryMsg)
 	welcomeMsg:SetText(FISConfig.welcomeMsg)
 	leaveMsg:SetText(FISConfig.leaveMsg)
 end
