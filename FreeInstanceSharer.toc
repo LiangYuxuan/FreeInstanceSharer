@@ -1,7 +1,7 @@
 ## Interface: 70300
 ## Version: 2.00
-## Title: |cFF70B8FFFree Instance Sharer|r
-## Title-zhCN: |cFF70B8FF便利CD分享|r
+## Title: |cFF70B8FF[Rhythm]|r Free Instance Sharer
+## Title-zhCN: |cFF70B8FF[Rhythm]|r 便利CD分享
 ## Notes: Simply sharing your saved instance to others.
 ## Notes-zhCN: 提供自动组队、自动排队、自动退组等功能，便利地共享副本CD。
 ## SavedVariablesPerCharacter: FISConfig
