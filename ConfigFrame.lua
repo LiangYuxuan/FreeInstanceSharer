@@ -23,7 +23,6 @@ table.insert(frames.inviteOnly, group:AddButton(L["AUTO_INVITE_BN"], "autoInvite
 group:AddDummy(L["CHECK_INVAL"], true)
 table.insert(frames.others, group:AddButton(L["AUTO_QUEUE"], "autoQueue"))
 group:AddDummy(L["MAX_TIME"], true)
--- TODO: Config fetchErrorMsg and queryMsg in ConfigFrame
 group:AddDummy(L["FETCH_ERROR_MSG"], true)
 group:AddDummy(L["QUERY_MSG"], true)
 table.insert(frames.others, group:AddButton(L["AUTO_LEAVE"], "autoLeave"))
@@ -130,15 +129,15 @@ function fetchErrorMsg:OnTextCancel()
 	return FISConfig.fetchErrorMsg
 end
 
-local queryMsg = frame:CreateEditBox()
-table.insert(frames.others, queryMsg)
-queryMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
-queryMsg:SetPoint("LEFT", group[10].text, "RIGHT", 10, 0)
-function queryMsg:OnTextCommit(text)
-	FISConfig.queryMsg = text
+local queryQueueMsg = frame:CreateEditBox()
+table.insert(frames.others, queryQueueMsg)
+queryQueueMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
+queryQueueMsg:SetPoint("LEFT", group[10].text, "RIGHT", 10, 0)
+function queryQueueMsg:OnTextCommit(text)
+	FISConfig.queryQueueMsg = text
 end
-function queryMsg:OnTextCancel()
-	return FISConfig.queryMsg
+function queryQueueMsg:OnTextCancel()
+	return FISConfig.queryQueueMsg
 end
 
 local welcomeMsg = frame:CreateEditBox()
@@ -176,7 +175,7 @@ addon.eventFrame.ON_PLAYER_ENTERING_WORLD = function ()
 	enterQueueMsg:SetText(FISConfig.enterQueueMsg)
 	maxWaitingTime:SetNumber(FISConfig.maxWaitingTime)
 	fetchErrorMsg:SetText(FISConfig.fetchErrorMsg)
-	queryMsg:SetText(FISConfig.queryMsg)
+	queryQueueMsg:SetText(FISConfig.queryQueueMsg)
 	welcomeMsg:SetText(FISConfig.welcomeMsg)
 	leaveMsg:SetText(FISConfig.leaveMsg)
 end

@@ -131,7 +131,9 @@ end
 -- format message string
 -- return formated string
 function eventFrame:format (message, curr)
-	message = string.gsub(message, "QCURR", curr)
+	if curr then
+		message = string.gsub(message, "QCURR", curr)
+	end
 	message = string.gsub(message, "QLEN", #queue)
 	message = string.gsub(message, "MTIME", FISConfig.maxWaitingTime)
 	message = string.gsub(message, "NAME", UnitName("player") .. "-" .. GetRealmName())
@@ -177,13 +179,13 @@ function eventFrame:inviteToGroup (name)
 		SetRaidDifficultyID(14) -- 普通难度
 		SetLegacyRaidDifficultyID(4) -- 旧世副本难度25人普通
 		ResetInstances()
-		InviteUnit(name)
 		if not FISConfig.inviteOnly and FISConfig.autoQueue then
 			groupRosterUpdateTimes = 0
 			status = 2
 		else
 			status = 1
 		end
+		InviteUnit(name)
 	end
 end
 
