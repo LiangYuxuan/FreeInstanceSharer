@@ -1,6 +1,8 @@
 local _, addon = ...
 local L = addon.L
 
+local DEBUG = false -- 调试模式
+
 local defaultConfig = {
 	["enable"] = false, -- 启动时启用
 	["inviteOnly"] = false, -- 极简模式（只启用防AFK、自动延长锁定、密语进组）
@@ -24,23 +26,26 @@ local defaultConfig = {
 
 local autoLeaveInstanceMapID = {
 	-- 团队副本
-	531, -- 安其拉神殿
-	564, -- 黑暗神殿
-	603, -- 奥杜尔
-	631, -- 冰冠堡垒
-	669, -- 黑翼血环
-	754, -- 风神王座
-	720, -- 火焰之地
-	967, -- 巨龙之魂
-	966, -- 永春台
-	1008, -- 魔古山宝库
-	1098, -- 雷电王座
-	1136, -- 决战奥格瑞玛
-	1205, -- 黑石铸造厂
-	1448, -- 地狱火堡垒
+	[531] = {14}, -- 安其拉神殿
+	[564] = {14}, -- 黑暗神殿
+	[603] = {14}, -- 奥杜尔
+	[631] = {3, 4, 5, 6}, -- 冰冠堡垒
+	[669] = {3, 4, 5, 6}, -- 黑翼血环
+	[754] = {3, 4, 5, 6}, -- 风神王座
+	[720] = {3, 4, 5, 6}, -- 火焰之地
+	[967] = {3, 4, 5, 6}, -- 巨龙之魂
+	[966] = {3, 4, 5, 6}, -- 永春台
+	[1008] = {3, 4, 5, 6}, -- 魔古山宝库
+	[1098] = {3, 4, 5, 6}, -- 雷电王座
+	[1136] = {15}, -- 决战奥格瑞玛
+	[1205] = {14, 15}, -- 黑石铸造厂
+	[1448] = {14, 15}, -- 地狱火堡垒
+	-- [1520] = {15}, -- 翡翠梦魇
+	-- [1676] = {14, 15}, -- 萨格拉斯之墓
+	-- [1712] = {14, 15}, -- 安托鲁斯，燃烧王座
 
 	-- 地下城
-	1651, -- 重返卡拉赞
+	[1651] = {23}, -- 重返卡拉赞
 }
 
 local status = 0 -- 0 - before init 1 - idle 2 - inviting 3 - invited
@@ -86,14 +91,9 @@ function eventFrame:OnUpdate (elapsed)
 				-- check player place
 				if FISConfig.autoLeave then
 					local _, _, _, instanceID = UnitPosition("party1")
-					if instanceID then
-						local ID
-						for _, ID in pairs(autoLeaveInstanceMapID) do
-							if instanceID == ID then
-								self.leaveGroup(self)
-								break
-							end
-						end
+					if instanceID and autoLeaveInstanceMapID[instanceID] then
+						self.leaveGroup(self)
+						break
 					end
 				end
 			end
@@ -255,9 +255,19 @@ end
 function eventFrame:UPDATE_INSTANCE_INFO ()
 	if FISConfig.enable and FISConfig.autoExtend then
 		for i = 1, GetNumSavedInstances() do
-			local _, _, _, _, _, extended = GetSavedInstanceInfo(i)
-			if not extended then
-				SetSavedInstanceExtend(i, true)
+			local _, _, _, difficulty, _, extended = GetSavedInstanceInfo(i)
+			-- Thanks for SavedInstances
+			local link = GetSavedInstanceChatLink(i)
+			local instanceID = link:match(":(%d+):%d+:%d+\124h");
+			if not extended and autoLeaveInstanceMapID[instanceID] then
+				local difficulties = autoLeaveInstanceMapID[instanceID]
+				local curr
+				for _, curr in pairs(difficulties) do
+					if difficulty == curr then
+						SetSavedInstanceExtend(i, true)
+						break
+					end
+				end
 			end
 		end
 	end
