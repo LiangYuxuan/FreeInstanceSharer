@@ -93,7 +93,6 @@ function eventFrame:OnUpdate (elapsed)
 					local _, _, _, instanceID = UnitPosition("party1")
 					if instanceID and autoLeaveInstanceMapID[instanceID] then
 						self.leaveGroup(self)
-						break
 					end
 				end
 			end
