@@ -258,6 +258,7 @@ function eventFrame:UPDATE_INSTANCE_INFO ()
 			-- Thanks for SavedInstances
 			local link = GetSavedInstanceChatLink(i)
 			local instanceID = link:match(":(%d+):%d+:%d+\124h");
+			instanceID = instanceID and tonumber(instanceID)
 			if not extended and autoLeaveInstanceMapID[instanceID] then
 				local difficulties = autoLeaveInstanceMapID[instanceID]
 				local curr
