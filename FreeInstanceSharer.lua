@@ -84,7 +84,7 @@ function eventFrame:OnUpdate (elapsed)
 				end
 			elseif status == 3 then
 				-- check max waiting time
-				if FISConfig.maxWaitingTime and time() - invitedTime >= FISConfig.maxWaitingTime then
+				if FISConfig.maxWaitingTime and FISConfig.maxWaitingTime ~= 0 and time() - invitedTime >= FISConfig.maxWaitingTime then
 					self.leaveGroup(self)
 				end
 
