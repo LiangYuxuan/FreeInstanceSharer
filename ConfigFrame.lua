@@ -132,7 +132,7 @@ end
 local queryQueueMsg = frame:CreateEditBox()
 table.insert(frames.others, queryQueueMsg)
 queryQueueMsg:SetPoint("RIGHT", frame, "RIGHT", -10, 0)
-queryQueueMsg:SetPoint("LEFT", group[10].text, "RIGHT", 10, 0)
+queryQueueMsg:SetPoint("LEFT", group[11].text, "RIGHT", 10, 0)
 function queryQueueMsg:OnTextCommit(text)
 	FISConfig.queryQueueMsg = text
 end
