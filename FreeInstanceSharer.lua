@@ -52,7 +52,6 @@ local status = 0 -- 0 - before init 1 - idle 2 - inviting 3 - invited
 local timeElapsed = 0 -- time elapsed from previous OnUpdate
 local queue = {}
 local invitedTime
-local groupRosterUpdateTimes -- GROUP_ROSTER_UPDATE trigger times
 
 local eventFrame = CreateFrame("Frame")
 addon.eventFrame = eventFrame
@@ -314,23 +313,23 @@ function eventFrame:CHAT_MSG_BN_WHISPER (...)
 end
 
 function eventFrame:GROUP_ROSTER_UPDATE ()
-	-- NOTE: before inviting: 2 times, accepted or rejected: 1 times, leaving party: 3 times
+	-- NOTE: before inviting: 3 times, accepted or rejected: 2 times, leaving party: 2 times
 	if not FISConfig.inviteOnly and FISConfig.autoQueue then
-		groupRosterUpdateTimes = groupRosterUpdateTimes + 1
-		if groupRosterUpdateTimes > 2 then
-			if status == 2 then
+		if status == 2 then
+			if IsInGroup() then
 				if GetNumGroupMembers() > 1 then
 					-- accepted
 					self.playerInvited(self)
-				else
-					-- rejected
-					self.playerRejected(self)
 				end
-			elseif status == 3 then
-				if not IsInGroup() or GetNumGroupMembers() == 1 then
-					-- player leaved
-					self.playerLeaved(self)
-				end
+				-- otherwise still waiting
+			else
+				-- rejected
+				self.playerRejected(self)
+			end
+		elseif status == 3 then
+			if not IsInGroup() then
+				-- player leaved
+				self.playerLeaved(self)
 			end
 		end
 	end
