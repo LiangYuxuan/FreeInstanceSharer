@@ -299,7 +299,7 @@ function eventFrame:CHAT_MSG_BN_WHISPER (...)
 		local _, _, _, _, _, bnetIDGameAccount = BNGetFriendInfoByID(presenceID)
 		local _, characterName, _, realmName = BNGetGameAccountInfo(bnetIDGameAccount)
 
-		if characterName and realmName then
+		if characterName and characterName ~= "" and realmName and realmName ~= "" then
 			local isInviteMsg = message == FISConfig.autoInviteBNMsg
 
 			if FISConfig.autoInviteBN and isInviteMsg then
