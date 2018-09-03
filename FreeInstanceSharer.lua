@@ -299,15 +299,17 @@ function eventFrame:CHAT_MSG_BN_WHISPER (...)
 		local _, _, _, _, _, bnetIDGameAccount = BNGetFriendInfoByID(presenceID)
 		local _, characterName, _, realmName = BNGetGameAccountInfo(bnetIDGameAccount)
 
-		if characterName and characterName ~= "" and realmName and realmName ~= "" then
-			local isInviteMsg = message == FISConfig.autoInviteBNMsg
+		local isInviteMsg = message == FISConfig.autoInviteBNMsg
 
-			if FISConfig.autoInviteBN and isInviteMsg then
-				self.addToQueue(self, characterName .. "-" .. realmName)
+		if isInviteMsg then
+			if characterName and characterName ~= "" and realmName and realmName ~= "" then
+				if FISConfig.autoInviteBN and isInviteMsg then
+					self.addToQueue(self, characterName .. "-" .. realmName)
+				end
+			else
+				local message = self.format(FISConfig.fetchErrorMsg, nil)
+				BNSendWhisper(presenceID, message)
 			end
-		else
-			local message = self.format(FISConfig.fetchErrorMsg, nil)
-			BNSendWhisper(presenceID, message)
 		end
 	end
 end
