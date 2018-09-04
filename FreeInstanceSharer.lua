@@ -1,5 +1,7 @@
 local _, addon = ...
-local L = addon.L
+local L = LibStub("AceLocale-3.0"):GetLocale("FreeInstanceSharer")
+local AceConfig = LibStub("AceConfig-3.0")
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 local DEBUG = false -- 调试模式
 
@@ -12,6 +14,8 @@ local defaultConfig = {
 	["autoInviteMsg"] = "123", -- 密语进组信息
 	["autoInviteBN"] = true, -- 战网密语进组
 	["autoInviteBNMsg"] = "123", -- 战网密语进组信息
+	["autoLeave"] = true, -- 密语离开队列
+	["autoLeaveMsg"] = "233", -- 密语离开队列信息
 	["checkInterval"] = 500, -- 检查间隔
 	["autoQueue"] = true, -- 自动排队
 	["maxWaitingTime"] = 30, -- 最长在组等待时间 (0 - 无限制)
@@ -19,7 +23,7 @@ local defaultConfig = {
 	["enterQueueMsg"] = "你已进入队列，排在第 QCURR 名。", -- 进入队列提示
 	["fetchErrorMsg"] = "无法从战网获取你的角色信息，请尝试游戏内密语 NAME 。", -- 战网获取角色失败的信息
 	["queryQueueMsg"] = "你已进入队列，排在第 QCURR 名。", -- 查询队列位置提示
-	-- ["leaveQueueMsg"] = "", -- 离开队列提示
+	["leaveQueueMsg"] = "你已离开队列。", -- 离开队列提示
 	["welcomeMsg"] = "你现在有 MTIME 秒的进本时间。默认难度为25人普通，在队伍发送 10 切换为10人模式，发送 H 切换为英雄模式。", -- 进组时发送的信息
 	["leaveMsg"] = "已将队长转交，刷无敌请自行在副本内修改难度为英雄（如果未成功请在副本外设置自己为25普通在来一次）。", -- 退组时发送的信息
 }
@@ -114,15 +118,15 @@ function eventFrame:printStatus ()
 	if FISConfig.enable then
 		if status then
 			if FISConfig.inviteOnly then
-				print(L["MSG_PREFIX"] .. L["INVITE_ONLY_MODE"])
+				print(L["FIS:"] .. L["INVITE_ONLY_MODE"])
 			else
-				print(L["MSG_PREFIX"] .. L["SHARE_STARTED"])
+				print(L["FIS:"] .. L["SHARE_STARTED"])
 			end
 		else
-			print(L["MSG_PREFIX"] .. L["SHARE_STARTING"])
+			print(L["FIS:"] .. L["SHARE_STARTING"])
 		end
 	else
-		print(L["MSG_PREFIX"] .. L["SHARE_STOP"])
+		print(L["FIS:"] .. L["SHARE_STOP"])
 	end
 end
 
@@ -168,6 +172,20 @@ function eventFrame:addToQueue (name)
 			return 0
 		end
 	end
+end
+
+-- remove a player from queue
+-- return nil
+function eventFrame:removeFromQueue (name)
+	local index, curr
+	for index, curr in pairs(queue) do
+		if curr == name then
+			table.remove(queue, index)
+			break
+		end
+	end
+	local message = self.format(self, FISConfig.leaveQueueMsg)
+	SendChatMessage(message, "WHISPER", nil, name)
 end
 
 -- invite player
@@ -225,15 +243,6 @@ function eventFrame:leaveGroup ()
 	end
 end
 
-function eventFrame:slashCmdHandler (message, editbox)
-	FISConfig.enable = not FISConfig.enable
-	status = 0
-	self.printStatus(self)
-	if FISConfig.enable then
-		RequestRaidInfo()
-	end
-end
-
 function eventFrame:PLAYER_ENTERING_WORLD ()
 	RequestRaidInfo()
 	if not FISConfig then
@@ -246,8 +255,202 @@ function eventFrame:PLAYER_ENTERING_WORLD ()
 			end
 		end
 	end
-	-- function defined in ConfigFrame.lua
-	self.ON_PLAYER_ENTERING_WORLD(self)
+	local generalOptions = {
+		name = L["Free Instance Sharer"],
+		type = "group",
+		args = {
+			enable = {
+				order = 1,
+				name = L["Enable"],
+				type = "toggle",
+				set = function(info, value)
+					FISConfig.enable = value
+					status = 0
+					eventFrame.printStatus(eventFrame)
+					if value then
+						RequestRaidInfo()
+					end
+				end,
+				get = function(info) return FISConfig.enable end
+			},
+			inviteOnly = {
+				order = 11,
+				name = L["Invite Only"],
+				type = "toggle",
+				set = function(info, value)
+					FISConfig.inviteOnly = value
+					eventFrame.printStatus(eventFrame)
+				end,
+				get = function(info) return FISConfig.inviteOnly end
+			},
+			preventAFK = {
+				order = 21,
+				name = L["Prevent AFK"],
+				type = "toggle",
+				set = function(info, value) FISConfig.preventAFK = value end,
+				get = function(info) return FISConfig.preventAFK end
+			},
+			subHeader = {
+				order = 30,
+				name = "",
+				type = "header",
+			},
+			autoExtend = {
+				order = 31,
+				name = L["Auto Extend Saved Instance"],
+				type = "toggle",
+				set = function(info, value) FISConfig.autoExtend = value end,
+				get = function(info) return FISConfig.autoExtend end
+			},
+			autoInvite = {
+				order = 32,
+				name = L["Auto Invite by In-game Whisper"],
+				type = "toggle",
+				set = function(info, value) FISConfig.autoInvite = value end,
+				get = function(info) return FISConfig.autoInvite end
+			},
+			autoInviteBN = {
+				order = 33,
+				name = L["Auto Invite by Battle.net Whisper"],
+				type = "toggle",
+				set = function(info, value) FISConfig.autoInviteBN = value end,
+				get = function(info) return FISConfig.autoInviteBN end
+			},
+			autoLeave = {
+				order = 34,
+				name = L["Leave Queue by In-game Whisper"],
+				type = "toggle",
+				set = function(info, value) FISConfig.autoLeave = value end,
+				get = function(info) return FISConfig.autoLeave end
+			},
+			checkInterval = {
+				order = 41,
+				name = L["Check Queue Interval (ms)"],
+				type = "input",
+				pattern = "%d+",
+				confirm = true,
+				set = function(info, value) FISConfig.checkInterval = tonumber(value) end,
+				get = function(info) return tostring(FISConfig.checkInterval) end
+			},
+			autoQueue = {
+				order = 51,
+				name = L["Auto Entering Queue"],
+				type = "toggle",
+				set = function(info, value) FISConfig.autoQueue = value end,
+				get = function(info) return FISConfig.autoQueue end
+			},
+			maxWaitingTime = {
+				order = 52,
+				name = L["Max Waiting Time (s)"],
+				type = "input",
+				pattern = "%d+",
+				confirm = true,
+				set = function(info, value) FISConfig.maxWaitingTime = tonumber(value) end,
+				get = function(info) return tostring(FISConfig.maxWaitingTime) end
+			},
+			autoLeave = {
+				order = 53,
+				name = L["Auto Leave Party"],
+				type = "toggle",
+				set = function(info, value) FISConfig.autoLeave = value end,
+				get = function(info) return FISConfig.autoLeave end
+			},
+		},
+	}
+	local messageOptions = {
+		name = L["MSG_OPTIONS"],
+		type = "group",
+		args = {
+			autoInviteMsg = {
+				order = 1,
+				name = L["Auto Invite by In-game Whisper Message"],
+				type = "input",
+				confirm = true,
+				set = function(info, value) FISConfig.autoInviteMsg = value end,
+				get = function(info) return FISConfig.autoInviteMsg end
+			},
+			autoInviteBNMsg = {
+				order = 2,
+				name = L["Auto Invite by Battle.net Whisper Message"],
+				type = "input",
+				confirm = true,
+				set = function(info, value) FISConfig.autoInviteBNMsg = value end,
+				get = function(info) return FISConfig.autoInviteBNMsg end
+			},
+			autoLeaveMsg = {
+				order = 3,
+				name = L["Leave Queue by In-game Whisper Message"],
+				type = "input",
+				confirm = true,
+				set = function(info, value) FISConfig.autoLeaveMsg = value end,
+				get = function(info) return FISConfig.autoLeaveMsg end
+			},
+			enterQueueMsg = {
+				order = 11,
+				name = L["Entering Queue Message"],
+				type = "input",
+				confirm = true,
+				multiline = true,
+				set = function(info, value) FISConfig.enterQueueMsg = value end,
+				get = function(info) return FISConfig.enterQueueMsg end
+			},
+			fetchErrorMsg = {
+				order = 12,
+				name = L["Fetch Error Message"],
+				type = "input",
+				confirm = true,
+				multiline = true,
+				set = function(info, value) FISConfig.fetchErrorMsg = value end,
+				get = function(info) return FISConfig.fetchErrorMsg end
+			},
+			queryQueueMsg = {
+				order = 13,
+				name = L["Query Message"],
+				type = "input",
+				confirm = true,
+				multiline = true,
+				set = function(info, value) FISConfig.queryQueueMsg = value end,
+				get = function(info) return FISConfig.queryQueueMsg end
+			},
+			leaveQueueMsg = {
+				order = 14,
+				name = L["Leave Queue Message"],
+				type = "input",
+				confirm = true,
+				multiline = true,
+				set = function(info, value) FISConfig.leaveQueueMsg = value end,
+				get = function(info) return FISConfig.leaveQueueMsg end
+			},
+			welcomeMsg = {
+				order = 21,
+				name = L["Welcome Message"],
+				type = "input",
+				confirm = true,
+				multiline = true,
+				set = function(info, value) FISConfig.welcomeMsg = value end,
+				get = function(info) return FISConfig.welcomeMsg end
+			},
+			leaveMsg = {
+				order = 22,
+				name = L["Leave Message"],
+				type = "input",
+				confirm = true,
+				multiline = true,
+				set = function(info, value) FISConfig.leaveMsg = value end,
+				get = function(info) return FISConfig.leaveMsg end
+			},
+			textReplace = {
+				order = 91,
+				name = L["TEXT_REPLACE"],
+				type = "description",
+			},
+		},
+	}
+
+	AceConfig:RegisterOptionsTable("FIS", generalOptions, "/fis")
+	AceConfig:RegisterOptionsTable("FIS_MSG", messageOptions, nil)
+	AceConfigDialog:AddToBlizOptions("FIS", L["Free Instance Sharer"])
+	AceConfigDialog:AddToBlizOptions("FIS_MSG", L["Notify Message"], "FIS")
 end
 
 function eventFrame:UPDATE_INSTANCE_INFO ()
@@ -285,9 +488,12 @@ function eventFrame:CHAT_MSG_WHISPER (...)
 		local message, sender = ...
 
 		local isInviteMsg = message == FISConfig.autoInviteMsg
+		local isLeaveMsg = message == FISConfig.autoLeaveMsg
 
 		if FISConfig.autoInvite and isInviteMsg then
 			self.addToQueue(self, sender)
+		elseif FISConfig.autoLeave and isLeaveMsg then
+			self.removeFromQueue(self, sender)
 		end
 	end
 end
@@ -301,11 +507,9 @@ function eventFrame:CHAT_MSG_BN_WHISPER (...)
 
 		local isInviteMsg = message == FISConfig.autoInviteBNMsg
 
-		if isInviteMsg then
+		if FISConfig.autoInviteBN and isInviteMsg then
 			if characterName and characterName ~= "" and realmName and realmName ~= "" then
-				if FISConfig.autoInviteBN and isInviteMsg then
-					self.addToQueue(self, characterName .. "-" .. realmName)
-				end
+				self.addToQueue(self, characterName .. "-" .. realmName)
 			else
 				local message = self.format(FISConfig.fetchErrorMsg, nil)
 				BNSendWhisper(presenceID, message)
@@ -354,9 +558,4 @@ function eventFrame:CHAT_MSG_PARTY (...)
 		SetRaidDifficultyID(RaidDifficulty)
 		SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
 	end
-end
-
-SLASH_FIS1 = "/fis"
-SlashCmdList["FIS"] = function (...)
-	eventFrame.slashCmdHandler(eventFrame, ...)
 end

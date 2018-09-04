@@ -1,13 +1,13 @@
 ## Interface: 80000
-## Version: 2.10
+## Version: 2.20
 ## Title: |cFF70B8FF[Rhythm]|r Free Instance Sharer
 ## Title-zhCN: |cFF70B8FF[Rhythm]|r 便利CD分享
 ## Notes: Simply sharing your saved instance to others.
 ## Notes-zhCN: 提供自动组队、自动排队、自动退组等功能，便利地共享副本CD。
 ## SavedVariablesPerCharacter: FISConfig
 
-Includes\InterfaceOptionPage-1.0.lua
+Libs\load_libs.xml
 
-Localization.lua
+Locales\Locales.xml
+
 FreeInstanceSharer.lua
-ConfigFrame.lua
