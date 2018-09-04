@@ -3,9 +3,17 @@ local L = LibStub("AceLocale-3.0"):GetLocale("FreeInstanceSharer")
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
-local DEBUG = false -- 调试模式
+local function debug (...)
+	if not FISConfig then
+		print("FISConfig not loaded")
+		print(...)
+	elseif FISConfig.debug then
+		print(...)
+	end
+end
 
 local defaultConfig = {
+	["debug"] = false, -- 调试模式
 	["enable"] = false, -- 启动时启用
 	["inviteOnly"] = false, -- 极简模式（只启用防AFK、自动延长锁定、密语进组）
 	["preventAFK"] = true, -- 防AFK
@@ -145,6 +153,7 @@ end
 -- add a player to queue
 -- return nil - not enabled 0 - success 1 - fail(exists)
 function eventFrame:addToQueue (name)
+	debug("Adding to queue:", name)
 	if FISConfig.enable then
 		if not FISConfig.inviteOnly and FISConfig.autoQueue then
 			local flag, index, curr = false
@@ -177,6 +186,7 @@ end
 -- remove a player from queue
 -- return nil
 function eventFrame:removeFromQueue (name)
+	debug("Removing from queue:", name)
 	local index, curr
 	for index, curr in pairs(queue) do
 		if curr == name then
@@ -191,6 +201,7 @@ end
 -- invite player
 -- return nil
 function eventFrame:inviteToGroup (name)
+	debug("Inviting to group:", name)
 	if FISConfig.enable then
 		SetRaidDifficultyID(14) -- 普通难度
 		SetLegacyRaidDifficultyID(4) -- 旧世副本难度25人普通
@@ -208,6 +219,7 @@ end
 -- mark invited
 -- return nil
 function eventFrame:playerInvited ()
+	debug("Player accepted invition")
 	invitedTime = time()
 	if FISConfig.welcomeMsg and FISConfig.welcomeMsg ~= "" then
 		local message = self.format(self, FISConfig.welcomeMsg)
@@ -219,18 +231,21 @@ end
 -- mark rejected
 -- return nil
 function eventFrame:playerRejected ()
+	debug("Player rejected invition")
 	status = 1
 end
 
 -- mark leaved
 -- return nil
 function eventFrame:playerLeaved ()
+	debug("Player leaved group")
 	status = 1
 end
 
 -- transfer leader and leave party
 -- return nil
 function eventFrame:leaveGroup ()
+	debug("BOT leaving group")
 	if status == 3 then
 		if FISConfig.leaveMsg and FISConfig.leaveMsg ~= "" then
 			local message = self.format(self, FISConfig.leaveMsg)
@@ -289,6 +304,13 @@ function eventFrame:PLAYER_ENTERING_WORLD ()
 				type = "toggle",
 				set = function(info, value) FISConfig.preventAFK = value end,
 				get = function(info) return FISConfig.preventAFK end
+			},
+			debug = {
+				order = 26,
+				name = L["Debug Mode"],
+				type = "toggle",
+				set = function(info, value) FISConfig.debug = value end,
+				get = function(info) return FISConfig.debug end
 			},
 			subHeader = {
 				order = 30,
@@ -350,7 +372,7 @@ function eventFrame:PLAYER_ENTERING_WORLD ()
 			},
 			autoLeave = {
 				order = 53,
-				name = L["Auto Leave Party"],
+				name = L["Auto Leave Group"],
 				type = "toggle",
 				set = function(info, value) FISConfig.autoLeave = value end,
 				get = function(info) return FISConfig.autoLeave end
@@ -484,6 +506,7 @@ function eventFrame:PLAYER_CAMPING ()
 end
 
 function eventFrame:CHAT_MSG_WHISPER (...)
+	debug("Received whisper", ...)
 	if FISConfig.enable then
 		local message, sender = ...
 
@@ -499,11 +522,15 @@ function eventFrame:CHAT_MSG_WHISPER (...)
 end
 
 function eventFrame:CHAT_MSG_BN_WHISPER (...)
+	debug("Received Battle.net whisper", ...)
 	if FISConfig.enable then
 		local message, _, _, _, _, _, _, _, _, _, _, _, presenceID = ...
 
 		local _, _, _, _, _, bnetIDGameAccount = BNGetFriendInfoByID(presenceID)
 		local _, characterName, _, realmName = BNGetGameAccountInfo(bnetIDGameAccount)
+
+		debug("BNGetFriendInfoByID", BNGetFriendInfoByID(presenceID))
+		debug("BNGetGameAccountInfo", BNGetGameAccountInfo(bnetIDGameAccount))
 
 		local isInviteMsg = message == FISConfig.autoInviteBNMsg
 
@@ -542,6 +569,7 @@ function eventFrame:GROUP_ROSTER_UPDATE ()
 end
 
 function eventFrame:CHAT_MSG_PARTY (...)
+	debug("Received party message", ...)
 	local message = ...
 
 	if not FISConfig.inviteOnly and FISConfig.autoQueue then
