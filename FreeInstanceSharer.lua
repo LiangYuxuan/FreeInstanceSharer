@@ -380,7 +380,7 @@ function eventFrame:PLAYER_ENTERING_WORLD ()
 		},
 	}
 	local messageOptions = {
-		name = L["MSG_OPTIONS"],
+		name = L["Notify Message"],
 		type = "group",
 		args = {
 			autoInviteMsg = {
