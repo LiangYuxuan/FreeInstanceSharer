@@ -67,6 +67,7 @@ local invitedTime
 
 local eventFrame = CreateFrame("Frame")
 addon.eventFrame = eventFrame
+eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UPDATE_INSTANCE_INFO")
 eventFrame:RegisterEvent("PLAYER_CAMPING")
@@ -258,8 +259,7 @@ function eventFrame:leaveGroup ()
 	end
 end
 
-function eventFrame:PLAYER_ENTERING_WORLD ()
-	RequestRaidInfo()
+function eventFrame:PLAYER_LOGIN ()
 	if not FISConfig then
 		FISConfig = defaultConfig
 	else
@@ -481,6 +481,10 @@ function eventFrame:PLAYER_ENTERING_WORLD ()
 	AceConfig:RegisterOptionsTable("FIS_MSG", messageOptions, nil)
 	AceConfigDialog:AddToBlizOptions("FIS", L["Free Instance Sharer"])
 	AceConfigDialog:AddToBlizOptions("FIS_MSG", L["Notify Message"], "FIS")
+end
+
+function eventFrame:PLAYER_ENTERING_WORLD ()
+	RequestRaidInfo()
 end
 
 function eventFrame:UPDATE_INSTANCE_INFO ()
