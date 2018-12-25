@@ -560,7 +560,7 @@ end
 
 function eventFrame:GROUP_ROSTER_UPDATE ()
 	-- NOTE: before inviting: 3 times, accepted or rejected: 2 times, leaving party: 2 times
-	if not FISConfig.inviteOnly and FISConfig.autoQueue then
+	if FISConfig.enable and not FISConfig.inviteOnly and FISConfig.autoQueue then
 		if status == 2 then
 			if IsInGroup() then
 				if GetNumGroupMembers() > 1 then
@@ -585,7 +585,7 @@ function eventFrame:CHAT_MSG_PARTY (...)
 	debug("Received party message", ...)
 	local message = ...
 
-	if not FISConfig.inviteOnly and FISConfig.autoQueue then
+	if FISConfig.enable and not FISConfig.inviteOnly and FISConfig.autoQueue then
 		local RaidDifficulty = GetRaidDifficultyID()
 		local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
 		local isTenPlayer = LegacyRaidDifficulty == 5 or LegacyRaidDifficulty == 3
