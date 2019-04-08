@@ -374,8 +374,8 @@ function Core:GROUP_ROSTER_UPDATE(event)
             end
         elseif self.status == 3 then
             if not IsInGroup() then
-                -- player leaved
-                self:debug("Player leaved group")
+                -- player left
+                self:debug("Player left group")
                 self.status = 1
             end
         end
