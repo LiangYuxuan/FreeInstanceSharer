@@ -1,5 +1,5 @@
 local addonName, addon = ...
-local L = LibStub("AceLocale-3.0"):NewLocale("FreeInstanceSharer", "enUS", true)
+local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 
 -- print in ChatFrame
 L["FIS:"] = "|cFF70B8FFFIS|r: "
@@ -7,6 +7,9 @@ L["SHARE_STARTING"] = "|cFFFFFF00Preparing|r sharing."
 L["SHARE_STARTED"] = "|cFF00FF00Start|r sharing."
 L["SHARE_STOP"] = "|cFFFF0000Stop|r sharing"
 L["INVITE_ONLY_MODE"] = "|cFF00FF00Invite Only Mode|r."
+
+L["Open config"] = true
+L["General settings"] = true
 
 -- Config Frame
 L["Free Instance Sharer"] = true

@@ -1,8 +1,8 @@
 local addonName, addon = ...
+local Core = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
-
-local core = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0")
-addon.core = core
+addon.Core = Core
+_G[addonName] = addon
 
 -- Lua functions
 local _G = _G
@@ -35,9 +35,9 @@ local UnitPosition = UnitPosition
 
 -- GLOBALS: FISConfig, StaticPopup_Visible
 
-function core:debug(...)
+function Core:debug(...)
     if addon.db and addon.db.debug then
-        print(...)
+        print("\124cFFFF0000" .. addonName .. "\124r:", ...)
     end
 end
 
@@ -90,47 +90,7 @@ local autoLeaveInstanceMapID = {
     [1651] = {23}, -- 重返卡拉赞
 }
 
-local timeElapsed = 0 -- time elapsed from previous OnUpdate
-
-core:SetScript("OnUpdate", function(self, ...)
-    self:OnUpdate(...)
-end)
-
-function core:OnUpdate(elapsed)
-    if not addon.db then return end
-    if not addon.db.inviteOnly then
-        timeElapsed = timeElapsed + elapsed
-        if addon.db.enable and (timeElapsed * 1000) >= addon.db.checkInterval then
-            timeElapsed = 0
-            if self.status == 1 then
-                -- check queue
-                if #self.queue > 0 then
-                    local name = self.queue[1]
-                    tremove(self.queue, 1)
-                    self:inviteToGroup(name)
-                end
-            elseif self.status == 3 then
-                -- check max waiting time
-                if (
-                    addon.db.maxWaitingTime and addon.db.maxWaitingTime ~= 0 and
-                    time() - self.invitedTime >= addon.db.maxWaitingTime
-                ) then
-                    self:leaveGroup()
-                end
-
-                -- check player place
-                if addon.db.autoLeave then
-                    local _, _, _, instanceID = UnitPosition("party1")
-                    if instanceID and autoLeaveInstanceMapID[instanceID] then
-                        self:leaveGroup()
-                    end
-                end
-            end
-        end
-    end
-end
-
-function core:OnEnable()
+function Core:OnEnable()
     if not FISConfig then
         FISConfig = defaultConfig
     else
@@ -150,15 +110,47 @@ function core:OnEnable()
     self:RegisterEvent("GROUP_ROSTER_UPDATE")
     self:RegisterEvent("CHAT_MSG_PARTY")
 
+    self:ScheduleRepeatingTimer("OnUpdate", addon.db.checkInterval / 1000.0)
+
     self.status = 0
     self.queue = {}
 end
 
+function Core:OnUpdate()
+    if not addon.db then return end
+    if addon.db.enable and not addon.db.inviteOnly then
+        if self.status == 1 then
+            -- check queue
+            if #self.queue > 0 then
+                local name = self.queue[1]
+                tremove(self.queue, 1)
+                self:inviteToGroup(name)
+            end
+        elseif self.status == 3 then
+            -- check max waiting time
+            if (
+                addon.db.maxWaitingTime and addon.db.maxWaitingTime ~= 0 and
+                time() - self.invitedTime >= addon.db.maxWaitingTime
+            ) then
+                self:leaveGroup()
+            end
+
+            -- check player place
+            if addon.db.autoLeave then
+                local _, _, _, instanceID = UnitPosition("party1")
+                if instanceID and autoLeaveInstanceMapID[instanceID] then
+                    self:leaveGroup()
+                end
+            end
+        end
+    end
+end
+
 -- print current status and config to chatframe
 -- return nil
-function core:printStatus()
+function Core:printStatus()
     if addon.db.enable then
-        if self.status then
+        if self.status > 0 then
             if addon.db.inviteOnly then
                 print(L["FIS:"] .. L["INVITE_ONLY_MODE"])
             else
@@ -174,7 +166,7 @@ end
 
 -- format message string
 -- return formated string
-function core:format(message, curr)
+function Core:format(message, curr)
     if curr then
         message = gsub(message, "QCURR", curr)
     end
@@ -186,7 +178,7 @@ end
 
 -- add a player to queue
 -- return nil - not enabled 0 - success 1 - fail(exists)
-function core:addToQueue(name)
+function Core:addToQueue(name)
     self:debug("Adding to queue:", name)
     if addon.db.enable then
         if not addon.db.inviteOnly and addon.db.autoQueue then
@@ -200,18 +192,18 @@ function core:addToQueue(name)
             if not result then
                 tinsert(self.queue, name)
                 if addon.db.enterQueueMsg and addon.db.enterQueueMsg ~= "" then
-                    local message = self.format(self, addon.db.enterQueueMsg, #self.queue)
+                    local message = self:format(addon.db.enterQueueMsg, #self.queue)
                     SendChatMessage(message, "WHISPER", nil, name)
                 end
             else
                 if addon.db.queryQueueMsg and addon.db.queryQueueMsg ~= "" then
-                    local message = self.format(self, addon.db.queryQueueMsg, result)
+                    local message = self:format(addon.db.queryQueueMsg, result)
                     SendChatMessage(message, "WHISPER", nil, name)
                 end
             end
             return not result
         else
-            self.inviteToGroup(self, name)
+            self:inviteToGroup(name)
             return 0
         end
     end
@@ -219,7 +211,7 @@ end
 
 -- remove a player from queue
 -- return nil
-function core:removeFromQueue(name)
+function Core:removeFromQueue(name)
     self:debug("Removing from queue:", name)
     for index, curr in pairs(self.queue) do
         if curr == name then
@@ -227,13 +219,13 @@ function core:removeFromQueue(name)
             break
         end
     end
-    local message = self.format(self, addon.db.leaveQueueMsg)
+    local message = self:format(addon.db.leaveQueueMsg)
     SendChatMessage(message, "WHISPER", nil, name)
 end
 
 -- invite player
 -- return nil
-function core:inviteToGroup(name)
+function Core:inviteToGroup(name)
     self:debug("Inviting to group:", name)
     if addon.db.enable then
         SetRaidDifficultyID(14) -- 普通难度
@@ -250,11 +242,11 @@ end
 
 -- transfer leader and leave party
 -- return nil
-function core:leaveGroup()
+function Core:leaveGroup()
     self:debug("BOT leaving group")
     if self.status == 3 then
         if addon.db.leaveMsg and addon.db.leaveMsg ~= "" then
-            local message = self.format(self, addon.db.leaveMsg)
+            local message = self:format(addon.db.leaveMsg)
             SendChatMessage(message, "PARTY")
         end
         -- set status first to prevent GROUP_ROSTER_UPDATE handle
@@ -264,7 +256,7 @@ function core:leaveGroup()
     end
 end
 
-function core:UPDATE_INSTANCE_INFO()
+function Core:UPDATE_INSTANCE_INFO(event)
     if addon.db.enable and addon.db.autoExtend then
         for i = 1, GetNumSavedInstances() do
             local _, _, _, difficulty, _, extended = GetSavedInstanceInfo(i)
@@ -289,14 +281,14 @@ function core:UPDATE_INSTANCE_INFO()
     end
 end
 
-function core:PLAYER_CAMPING()
+function Core:PLAYER_CAMPING(event)
     if addon.db.preventAFK then
         local Popup = StaticPopup_Visible("CAMP")
         _G[Popup.."Button1"]:Click()
     end
 end
 
-function core:CHAT_MSG_WHISPER(...)
+function Core:CHAT_MSG_WHISPER(event, ...)
     self:debug("Received whisper", ...)
     if addon.db.enable then
         local message, sender = ...
@@ -309,7 +301,7 @@ function core:CHAT_MSG_WHISPER(...)
     end
 end
 
-function core:CHAT_MSG_BN_WHISPER(...)
+function Core:CHAT_MSG_BN_WHISPER(event, ...)
     self:debug("Received Battle.net whisper", ...)
     if addon.db.enable then
         local message, _, _, _, _, _, _, _, _, _, _, _, presenceID = ...
@@ -331,7 +323,7 @@ function core:CHAT_MSG_BN_WHISPER(...)
     end
 end
 
-function core:GROUP_ROSTER_UPDATE()
+function Core:GROUP_ROSTER_UPDATE(event)
     if addon.db.enable and not addon.db.inviteOnly and addon.db.autoQueue then
         if self.status == 2 then
             if IsInGroup() then
@@ -340,7 +332,7 @@ function core:GROUP_ROSTER_UPDATE()
                     self:debug("Player accepted invition")
                     self.invitedTime = time()
                     if addon.db.welcomeMsg and addon.db.welcomeMsg ~= "" then
-                        local message = self.format(self, addon.db.welcomeMsg)
+                        local message = self:format(addon.db.welcomeMsg)
                         SendChatMessage(message, "PARTY")
                     end
                     self.status = 3
@@ -361,7 +353,7 @@ function core:GROUP_ROSTER_UPDATE()
     end
 end
 
-function core:CHAT_MSG_PARTY(...)
+function Core:CHAT_MSG_PARTY(event, ...)
     self:debug("Received party message", ...)
     local message = ...
 
