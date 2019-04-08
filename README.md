@@ -15,12 +15,6 @@ Share saved instance by invite other players by in-game whisper or battle.net me
 * Set max waiting time.
 * Customize your own message.
 
-## Installation
-
-Copy `FreeInstanceSharer` to `Interface/Addons`, and enable this addon in game.
-
-Use slash command `/fis` to config this addon.
-
 ## Future plans
 
 - [ ] Localization for more language.
