@@ -27,67 +27,99 @@ local PromoteToLeader = PromoteToLeader
 local RequestRaidInfo = RequestRaidInfo
 local ResetInstances = ResetInstances
 local SendChatMessage = SendChatMessage
+local SetDungeonDifficultyID = SetDungeonDifficultyID
 local SetLegacyRaidDifficultyID = SetLegacyRaidDifficultyID
 local SetRaidDifficultyID = SetRaidDifficultyID
 local SetSavedInstanceExtend = SetSavedInstanceExtend
 local UnitName = UnitName
 local UnitPosition = UnitPosition
 
+local DIFFICULTY_PRIMARYRAID_NORMAL = DIFFICULTY_PRIMARYRAID_NORMAL
+local DIFFICULTY_PRIMARYRAID_HEROIC = DIFFICULTY_PRIMARYRAID_HEROIC
+local DIFFICULTY_RAID10_NORMAL = DIFFICULTY_RAID10_NORMAL
+local DIFFICULTY_RAID25_NORMAL = DIFFICULTY_RAID25_NORMAL
+local DIFFICULTY_RAID10_HEROIC = DIFFICULTY_RAID10_HEROIC
+local DIFFICULTY_RAID25_HEROIC = DIFFICULTY_RAID25_HEROIC
+local SLASH_STOPWATCH_PARAM_STOP1 = SLASH_STOPWATCH_PARAM_STOP1
+local SOCIAL_SHARE_TEXT = SOCIAL_SHARE_TEXT
+local START = START
+
 -- GLOBALS: FISConfig, StaticPopup_Visible
+
+local DIFFICULTY_DUNGEON_MYTHIC = 23
+local FONTEND = FONT_COLOR_CODE_CLOSE
+local REDFONT = RED_FONT_COLOR_CODE
+local GREENFONT = GREEN_FONT_COLOR_CODE
+
+Core.addonPrefix = "\124cFF70B8FF" .. addonName .. "\124r:"
 
 function Core:debug(...)
     if addon.db and addon.db.debug then
-        print("\124cFFFF0000" .. addonName .. "\124r:", ...)
+        print(Core.addonPrefix, ...)
     end
 end
 
 local defaultConfig = {
-    ["debug"] = false, -- 调试模式
-    ["enable"] = false, -- 启动时启用
-    ["inviteOnly"] = false, -- 极简模式（只启用防AFK、自动延长锁定、密语进组）
-    ["preventAFK"] = true, -- 防AFK
-    ["autoExtend"] = true, -- 自动延长锁定
-    ["autoInvite"] = true, -- 密语进组
-    ["autoInviteMsg"] = "123", -- 密语进组信息
-    ["autoInviteBN"] = true, -- 战网密语进组
-    ["autoInviteBNMsg"] = "123", -- 战网密语进组信息
-    ["autoLeave"] = true, -- 密语离开队列
-    ["autoLeaveMsg"] = "233", -- 密语离开队列信息
-    ["checkInterval"] = 500, -- 检查间隔
-    ["autoQueue"] = true, -- 自动排队
-    ["maxWaitingTime"] = 30, -- 最长在组等待时间 (0 - 无限制)
-    ["autoLeave"] = true, -- 检查成员位置并退组
-    ["enterQueueMsg"] = "你已进入队列，排在第 QCURR 名。", -- 进入队列提示
-    ["fetchErrorMsg"] = "无法从战网获取你的角色信息，请尝试游戏内密语 NAME 。", -- 战网获取角色失败的信息
-    ["queryQueueMsg"] = "你已进入队列，排在第 QCURR 名。", -- 查询队列位置提示
-    ["leaveQueueMsg"] = "你已离开队列。", -- 离开队列提示
-    ["welcomeMsg"] = "你现在有 MTIME 秒的进本时间。默认难度为25人普通，在队伍发送 10 切换为10人模式，发送 H 切换为英雄模式。", -- 进组时发送的信息
-    ["leaveMsg"] = "已将队长转交，刷无敌请自行在副本内修改难度为英雄（如果未成功请在副本外设置自己为25普通在来一次）。", -- 退组时发送的信息
+    ["debug"] = false, -- Debug mode
+    ["enable"] = false, -- Enable
+    ["inviteOnly"] = false, -- Invite Only Mode
+    ["preventAFK"] = true, -- Prevent AFK
+    ["autoExtend"] = true, -- Auto extend saved lockouts
+    ["autoInvite"] = true, -- Auto invite when received preset message
+    ["autoInviteMsg"] = "123", -- Message to get invited
+    ["autoInviteBN"] = true, -- Auto invite when received preset message from Battle.net
+    ["autoInviteBNMsg"] = "123", -- Message from Battle.net to get invited
+    ["autoLeave"] = true, -- Auto leave queue when received preset message
+    ["autoLeaveMsg"] = "233", -- Message to leave queue
+    ["checkInterval"] = 500, -- Check interval
+    ["autoQueue"] = true, -- Auto queue when more than one player try to get invited
+    ["maxWaitingTime"] = 30, -- Max time to wait players to enter instances
+    ["autoLeave"] = true, -- Auto leave party when players are in instances
+    ["enterQueueMsg"] = L["You're queued, and your postion is QCURR."], -- Message when entering queue
+    ["fetchErrorMsg"] = L["Fail to fetch your character infomation from Battle.net, please try to whisper to NAME in game."], -- Message when fail to fetch character from Battle.net
+    ["queryQueueMsg"] = L["You're queued, and your postion is QCURR."], -- Message when query the positon in queue
+    ["leaveQueueMsg"] = ERR_LFG_LEFT_QUEUE, -- Message when leaving queue
+    ["welcomeMsg"] = L["You have MTIME second(s) to enter instance. Difficulty set to 25 players normal in default. Send '10' in party to set to 10 players, 'H' to set to Heroic."], -- Welcome message after invited
+    ["leaveMsg"] = L["Promoted you to team leader. If you're in Icecrown Citadel, you need to set to Heroic by yourself."], -- Message before leaving party
 }
 
 local autoLeaveInstanceMapID = {
-    -- 团队副本
-    [531] = {14}, -- 安其拉神殿
-    [564] = {14}, -- 黑暗神殿
-    [603] = {14}, -- 奥杜尔
-    [631] = {3, 4, 5, 6}, -- 冰冠堡垒
-    [669] = {3, 4, 5, 6}, -- 黑翼血环
-    [754] = {3, 4, 5, 6}, -- 风神王座
-    [720] = {3, 4, 5, 6}, -- 火焰之地
-    [967] = {3, 4, 5, 6}, -- 巨龙之魂
-    [966] = {3, 4, 5, 6}, -- 永春台
-    [1008] = {3, 4, 5, 6}, -- 魔古山宝库
-    [1098] = {3, 4, 5, 6}, -- 雷电王座
-    [1136] = {15}, -- 决战奥格瑞玛
-    [1205] = {14, 15}, -- 黑石铸造厂
-    [1448] = {14, 15}, -- 地狱火堡垒
-    [1520] = {15}, -- 翡翠梦魇
-    [1530] = {14, 15}, -- 暗夜要塞
-    [1676] = {14, 15}, -- 萨格拉斯之墓
-    [1712] = {14, 15}, -- 安托鲁斯，燃烧王座
+    -- Raid
+    -- Vanilla
+    [531] = {14}, -- Temple of Ahn'Qiraj
+    -- The Burning Crusade
+    [564] = {14}, -- Black Temple
+    -- Wrath of the Lich King
+    [603] = {14}, -- Ulduar
+    [631] = {3, 4, 5, 6}, -- Icecrown Citadel
+    -- Cataclysm
+    [669] = {3, 4, 5, 6}, -- Blackwing Descent
+    [754] = {3, 4, 5, 6}, -- Throne of the Four Winds
+    [720] = {3, 4, 5, 6}, -- Firelands
+    [967] = {3, 4, 5, 6}, -- Dragon Soul
+    -- Mists of Pandaria
+    [966] = {3, 4, 5, 6}, -- Terrace of Endless Spring
+    [1008] = {3, 4, 5, 6}, -- Mogu'shan Vaults
+    [1098] = {3, 4, 5, 6}, -- Throne of Thunder
+    [1136] = {15}, -- Siege of Orgrimmar
+    -- Warlords of Draenor
+    [1205] = {14, 15}, -- Blackrock Foundry
+    [1448] = {14, 15}, -- Hellfire Citadel
+    -- Legion
+    [1520] = {15}, -- The Emerald Nightmare
+    [1530] = {14, 15}, -- The Nighthold
+    [1676] = {14, 15}, -- Tomb of Sargeras
+    [1712] = {14, 15}, -- Antorus, the Burning Throne
+    -- Battle for Azeroth
+    -- [2070] = {14, 15}, -- Battle of Dazar'alor
 
-    -- 地下城
-    [1651] = {23}, -- 重返卡拉赞
+    -- Dungeon
+    -- Legion
+    [1651] = {23}, -- Return to Karazhan
+    -- Battle for Azeroth
+    -- [1754] = {23}, -- Freehold
+    -- [1762] = {23}, -- Kings' Rest
+    -- [1841] = {23}, -- The Underrot
 }
 
 function Core:OnEnable()
@@ -150,17 +182,13 @@ end
 -- return nil
 function Core:printStatus()
     if addon.db.enable then
-        if self.status > 0 then
-            if addon.db.inviteOnly then
-                print(L["FIS:"] .. L["INVITE_ONLY_MODE"])
-            else
-                print(L["FIS:"] .. L["SHARE_STARTED"])
-            end
+        if addon.db.inviteOnly then
+            print(self.addonPrefix .. GREENFONT .. L["Invite Only Mode"] .. FONTEND)
         else
-            print(L["FIS:"] .. L["SHARE_STARTING"])
+            print(self.addonPrefix .. GREENFONT .. START .. FONTEND .. SOCIAL_SHARE_TEXT)
         end
     else
-        print(L["FIS:"] .. L["SHARE_STOP"])
+        print(self.addonPrefix .. REDFONT .. SLASH_STOPWATCH_PARAM_STOP1 .. FONTEND .. SOCIAL_SHARE_TEXT)
     end
 end
 
@@ -228,8 +256,9 @@ end
 function Core:inviteToGroup(name)
     self:debug("Inviting to group:", name)
     if addon.db.enable then
-        SetRaidDifficultyID(14) -- 普通难度
-        SetLegacyRaidDifficultyID(4) -- 旧世副本难度25人普通
+        SetDungeonDifficultyID(DIFFICULTY_DUNGEON_MYTHIC) -- Dungeon Mythic
+        SetRaidDifficultyID(DIFFICULTY_PRIMARYRAID_NORMAL) -- Raid Normal
+        SetLegacyRaidDifficultyID(DIFFICULTY_RAID25_NORMAL) -- Legacy Raid 25 Players Normal
         ResetInstances()
         if not addon.db.inviteOnly and addon.db.autoQueue then
             self.status = 2
@@ -365,8 +394,12 @@ function Core:CHAT_MSG_PARTY(event, ...)
 
         isTenPlayer = strfind(message, "10")
         isHeroic = strfind(message, "H") or strfind(message, "h")
-        RaidDifficulty = isHeroic and 15 or 14
-        LegacyRaidDifficulty = isHeroic and (isTenPlayer and 5 or 6) or (isTenPlayer and 3 or 4)
+        RaidDifficulty = isHeroic and DIFFICULTY_PRIMARYRAID_HEROIC or DIFFICULTY_PRIMARYRAID_NORMAL
+        LegacyRaidDifficulty = isHeroic and (
+            isTenPlayer and DIFFICULTY_RAID10_HEROIC or DIFFICULTY_RAID25_HEROIC
+        ) or (
+            isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL
+        )
 
         SetRaidDifficultyID(RaidDifficulty)
         SetLegacyRaidDifficultyID(LegacyRaidDifficulty)

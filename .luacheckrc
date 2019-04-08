@@ -40,6 +40,7 @@ globals = {
 	"GameTooltip_Hide",
 	"GameTooltip_SetDefaultAnchor",
 	"GameTooltip_UnitColor",
+	"InterfaceOptionsFrame_OpenToCategory",
 	"SecureButton_GetModifiedUnit",
 	"StaticPopup_Show",
 	"StaticPopupDialogs",
