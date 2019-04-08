@@ -2,8 +2,13 @@ local addonName, addon = ...
 local C = addon.core:NewModule("Config")
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
-
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+
+-- Lua functions
+local tonumber, tostring = tonumber, tostring
+
+-- WoW API / Variables
+local RequestRaidInfo = RequestRaidInfo
 
 local generalOptions = {
     name = L["Free Instance Sharer"],
