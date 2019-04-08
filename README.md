@@ -2,6 +2,8 @@
 
 A light World of Warcraft addon to share your saved instance to others.
 
+[![Build Status](https://travis-ci.org/LiangYuxuan/FreeInstanceSharer.svg?branch=master)](https://travis-ci.org/LiangYuxuan/FreeInstanceSharer)
+
 ## Introduction
 
 Share saved instance by invite other players by in-game whisper or battle.net message. Also with other supporting feature.
