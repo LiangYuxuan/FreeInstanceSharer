@@ -19,7 +19,7 @@ Share saved instance by invite other players by in-game whisper or battle.net me
 
 Copy `FreeInstanceSharer` to `Interface/Addons`, and enable this addon in game.
 
-Use slash command `\fis` to config this addon.
+Use slash command `/fis` to config this addon.
 
 ## Future plans
 

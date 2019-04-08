@@ -1,7 +1,8 @@
-local _, addon = ...
-local L = LibStub("AceLocale-3.0"):GetLocale("FreeInstanceSharer")
-local AceConfig = LibStub("AceConfig-3.0")
-local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+local addonName, addon = ...
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+
+local core = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0")
+addon.core = core
 
 -- Lua functions
 local _G = _G
@@ -34,8 +35,8 @@ local UnitPosition = UnitPosition
 
 -- GLOBALS: FISConfig, StaticPopup_Visible
 
-local function debug(...)
-    if FISConfig and FISConfig.debug then
+function core:debug(...)
+    if addon.db and addon.db.debug then
         print(...)
     end
 end
@@ -89,51 +90,39 @@ local autoLeaveInstanceMapID = {
     [1651] = {23}, -- 重返卡拉赞
 }
 
-local status = 0 -- 0 - before init 1 - idle 2 - inviting 3 - invited
 local timeElapsed = 0 -- time elapsed from previous OnUpdate
-local queue = {}
-local invitedTime
 
-local eventFrame = CreateFrame("Frame")
-addon.eventFrame = eventFrame
-eventFrame:RegisterEvent("PLAYER_LOGIN")
-eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-eventFrame:RegisterEvent("UPDATE_INSTANCE_INFO")
-eventFrame:RegisterEvent("PLAYER_CAMPING")
-eventFrame:RegisterEvent("CHAT_MSG_WHISPER")
-eventFrame:RegisterEvent("CHAT_MSG_BN_WHISPER")
-eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
-eventFrame:RegisterEvent("CHAT_MSG_PARTY")
-eventFrame:SetScript("OnUpdate", function(self, ...)
-    self.OnUpdate(self, ...)
-end)
-eventFrame:SetScript("OnEvent", function(self, event, ...)
-    self[event](self, ...)
+core:SetScript("OnUpdate", function(self, ...)
+    self:OnUpdate(...)
 end)
 
-function eventFrame:OnUpdate(elapsed)
-    if not FISConfig.inviteOnly then
+function core:OnUpdate(elapsed)
+    if not addon.db then return end
+    if not addon.db.inviteOnly then
         timeElapsed = timeElapsed + elapsed
-        if FISConfig.enable and (timeElapsed * 1000) >= FISConfig.checkInterval then
+        if addon.db.enable and (timeElapsed * 1000) >= addon.db.checkInterval then
             timeElapsed = 0
-            if status == 1 then
+            if self.status == 1 then
                 -- check queue
-                if #queue > 0 then
-                    local name = queue[1]
-                    tremove(queue, 1)
-                    self.inviteToGroup(self, name)
+                if #self.queue > 0 then
+                    local name = self.queue[1]
+                    tremove(self.queue, 1)
+                    self:inviteToGroup(name)
                 end
-            elseif status == 3 then
+            elseif self.status == 3 then
                 -- check max waiting time
-                if FISConfig.maxWaitingTime and FISConfig.maxWaitingTime ~= 0 and time() - invitedTime >= FISConfig.maxWaitingTime then
-                    self.leaveGroup(self)
+                if (
+                    addon.db.maxWaitingTime and addon.db.maxWaitingTime ~= 0 and
+                    time() - self.invitedTime >= addon.db.maxWaitingTime
+                ) then
+                    self:leaveGroup()
                 end
 
                 -- check player place
-                if FISConfig.autoLeave then
+                if addon.db.autoLeave then
                     local _, _, _, instanceID = UnitPosition("party1")
                     if instanceID and autoLeaveInstanceMapID[instanceID] then
-                        self.leaveGroup(self)
+                        self:leaveGroup()
                     end
                 end
             end
@@ -141,21 +130,36 @@ function eventFrame:OnUpdate(elapsed)
     end
 end
 
--- initialization
--- return nil
-function eventFrame:init()
-    if status == 0 then
-        self.printStatus(self)
-        status = 1
+function core:OnEnable()
+    if not FISConfig then
+        FISConfig = defaultConfig
+    else
+        for key, value in pairs(defaultConfig) do
+            if not FISConfig[key] then
+                FISConfig[key] = defaultConfig[key]
+            end
+        end
     end
+    addon.db = FISConfig
+
+    self:RegisterBucketEvent("PLAYER_ENTERING_WORLD", 1, RequestRaidInfo)
+    self:RegisterEvent("UPDATE_INSTANCE_INFO")
+    self:RegisterEvent("PLAYER_CAMPING")
+    self:RegisterEvent("CHAT_MSG_WHISPER")
+    self:RegisterEvent("CHAT_MSG_BN_WHISPER")
+    self:RegisterEvent("GROUP_ROSTER_UPDATE")
+    self:RegisterEvent("CHAT_MSG_PARTY")
+
+    self.status = 0
+    self.queue = {}
 end
 
 -- print current status and config to chatframe
 -- return nil
-function eventFrame:printStatus()
-    if FISConfig.enable then
-        if status then
-            if FISConfig.inviteOnly then
+function core:printStatus()
+    if addon.db.enable then
+        if self.status then
+            if addon.db.inviteOnly then
                 print(L["FIS:"] .. L["INVITE_ONLY_MODE"])
             else
                 print(L["FIS:"] .. L["SHARE_STARTED"])
@@ -170,38 +174,38 @@ end
 
 -- format message string
 -- return formated string
-function eventFrame:format(message, curr)
+function core:format(message, curr)
     if curr then
         message = gsub(message, "QCURR", curr)
     end
-    message = gsub(message, "QLEN", #queue)
-    message = gsub(message, "MTIME", FISConfig.maxWaitingTime)
+    message = gsub(message, "QLEN", #self.queue)
+    message = gsub(message, "MTIME", addon.db.maxWaitingTime)
     message = gsub(message, "NAME", UnitName("player") .. "-" .. GetRealmName())
     return message
 end
 
 -- add a player to queue
 -- return nil - not enabled 0 - success 1 - fail(exists)
-function eventFrame:addToQueue(name)
-    debug("Adding to queue:", name)
-    if FISConfig.enable then
-        if not FISConfig.inviteOnly and FISConfig.autoQueue then
+function core:addToQueue(name)
+    self:debug("Adding to queue:", name)
+    if addon.db.enable then
+        if not addon.db.inviteOnly and addon.db.autoQueue then
             local result
-            for index, curr in pairs(queue) do
+            for index, curr in pairs(self.queue) do
                 if curr == name then
                     result = index
                     break
                 end
             end
             if not result then
-                tinsert(queue, name)
-                if FISConfig.enterQueueMsg and FISConfig.enterQueueMsg ~= "" then
-                    local message = self.format(self, FISConfig.enterQueueMsg, #queue)
+                tinsert(self.queue, name)
+                if addon.db.enterQueueMsg and addon.db.enterQueueMsg ~= "" then
+                    local message = self.format(self, addon.db.enterQueueMsg, #self.queue)
                     SendChatMessage(message, "WHISPER", nil, name)
                 end
             else
-                if FISConfig.queryQueueMsg and FISConfig.queryQueueMsg ~= "" then
-                    local message = self.format(self, FISConfig.queryQueueMsg, result)
+                if addon.db.queryQueueMsg and addon.db.queryQueueMsg ~= "" then
+                    local message = self.format(self, addon.db.queryQueueMsg, result)
                     SendChatMessage(message, "WHISPER", nil, name)
                 end
             end
@@ -215,306 +219,53 @@ end
 
 -- remove a player from queue
 -- return nil
-function eventFrame:removeFromQueue(name)
-    debug("Removing from queue:", name)
-    for index, curr in pairs(queue) do
+function core:removeFromQueue(name)
+    self:debug("Removing from queue:", name)
+    for index, curr in pairs(self.queue) do
         if curr == name then
-            tremove(queue, index)
+            tremove(self.queue, index)
             break
         end
     end
-    local message = self.format(self, FISConfig.leaveQueueMsg)
+    local message = self.format(self, addon.db.leaveQueueMsg)
     SendChatMessage(message, "WHISPER", nil, name)
 end
 
 -- invite player
 -- return nil
-function eventFrame:inviteToGroup(name)
-    debug("Inviting to group:", name)
-    if FISConfig.enable then
+function core:inviteToGroup(name)
+    self:debug("Inviting to group:", name)
+    if addon.db.enable then
         SetRaidDifficultyID(14) -- 普通难度
         SetLegacyRaidDifficultyID(4) -- 旧世副本难度25人普通
         ResetInstances()
-        if not FISConfig.inviteOnly and FISConfig.autoQueue then
-            status = 2
+        if not addon.db.inviteOnly and addon.db.autoQueue then
+            self.status = 2
         else
-            status = 1
+            self.status = 1
         end
         InviteUnit(name)
     end
 end
 
--- mark invited
--- return nil
-function eventFrame:playerInvited()
-    debug("Player accepted invition")
-    invitedTime = time()
-    if FISConfig.welcomeMsg and FISConfig.welcomeMsg ~= "" then
-        local message = self.format(self, FISConfig.welcomeMsg)
-        SendChatMessage(message, "PARTY")
-    end
-    status = 3
-end
-
--- mark rejected
--- return nil
-function eventFrame:playerRejected()
-    debug("Player rejected invition")
-    status = 1
-end
-
--- mark leaved
--- return nil
-function eventFrame:playerLeaved()
-    debug("Player leaved group")
-    status = 1
-end
-
 -- transfer leader and leave party
 -- return nil
-function eventFrame:leaveGroup()
-    debug("BOT leaving group")
-    if status == 3 then
-        if FISConfig.leaveMsg and FISConfig.leaveMsg ~= "" then
-            local message = self.format(self, FISConfig.leaveMsg)
+function core:leaveGroup()
+    self:debug("BOT leaving group")
+    if self.status == 3 then
+        if addon.db.leaveMsg and addon.db.leaveMsg ~= "" then
+            local message = self.format(self, addon.db.leaveMsg)
             SendChatMessage(message, "PARTY")
         end
         -- set status first to prevent GROUP_ROSTER_UPDATE handle
-        status = 1
+        self.status = 1
         PromoteToLeader("party1")
         LeaveParty()
     end
 end
 
-function eventFrame:PLAYER_LOGIN()
-    if not FISConfig then
-        FISConfig = defaultConfig
-    else
-        for key, value in pairs(defaultConfig) do
-            if not FISConfig[key] then
-                FISConfig[key] = defaultConfig[key]
-            end
-        end
-    end
-    local generalOptions = {
-        name = L["Free Instance Sharer"],
-        type = "group",
-        args = {
-            enable = {
-                order = 1,
-                name = L["Enable"],
-                type = "toggle",
-                set = function(info, value)
-                    FISConfig.enable = value
-                    status = 0
-                    eventFrame.printStatus(eventFrame)
-                    if value then
-                        RequestRaidInfo()
-                    end
-                end,
-                get = function(info) return FISConfig.enable end
-            },
-            inviteOnly = {
-                order = 11,
-                name = L["Invite Only"],
-                type = "toggle",
-                set = function(info, value)
-                    FISConfig.inviteOnly = value
-                    eventFrame.printStatus(eventFrame)
-                end,
-                get = function(info) return FISConfig.inviteOnly end
-            },
-            preventAFK = {
-                order = 21,
-                name = L["Prevent AFK"],
-                type = "toggle",
-                set = function(info, value) FISConfig.preventAFK = value end,
-                get = function(info) return FISConfig.preventAFK end
-            },
-            debug = {
-                order = 26,
-                name = L["Debug Mode"],
-                type = "toggle",
-                set = function(info, value) FISConfig.debug = value end,
-                get = function(info) return FISConfig.debug end
-            },
-            subHeader = {
-                order = 30,
-                name = "",
-                type = "header",
-            },
-            autoExtend = {
-                order = 31,
-                name = L["Auto Extend Saved Instance"],
-                type = "toggle",
-                set = function(info, value) FISConfig.autoExtend = value end,
-                get = function(info) return FISConfig.autoExtend end
-            },
-            autoInvite = {
-                order = 32,
-                name = L["Auto Invite by In-game Whisper"],
-                type = "toggle",
-                set = function(info, value) FISConfig.autoInvite = value end,
-                get = function(info) return FISConfig.autoInvite end
-            },
-            autoInviteBN = {
-                order = 33,
-                name = L["Auto Invite by Battle.net Whisper"],
-                type = "toggle",
-                set = function(info, value) FISConfig.autoInviteBN = value end,
-                get = function(info) return FISConfig.autoInviteBN end
-            },
-            autoLeave = {
-                order = 34,
-                name = L["Leave Queue by In-game Whisper"],
-                type = "toggle",
-                set = function(info, value) FISConfig.autoLeave = value end,
-                get = function(info) return FISConfig.autoLeave end
-            },
-            autoQueue = {
-                order = 41,
-                name = L["Auto Entering Queue"],
-                type = "toggle",
-                set = function(info, value) FISConfig.autoQueue = value end,
-                get = function(info) return FISConfig.autoQueue end
-            },
-            checkInterval = {
-                order = 51,
-                name = L["Check Queue Interval (ms)"],
-                type = "input",
-                pattern = "%d+",
-                width = "double",
-                confirm = true,
-                set = function(info, value) FISConfig.checkInterval = tonumber(value) end,
-                get = function(info) return tostring(FISConfig.checkInterval) end
-            },
-            maxWaitingTime = {
-                order = 52,
-                name = L["Max Waiting Time (s)"],
-                type = "input",
-                pattern = "%d+",
-                width = "double",
-                confirm = true,
-                set = function(info, value) FISConfig.maxWaitingTime = tonumber(value) end,
-                get = function(info) return tostring(FISConfig.maxWaitingTime) end
-            },
-            autoLeave = {
-                order = 53,
-                name = L["Auto Leave Group"],
-                type = "toggle",
-                set = function(info, value) FISConfig.autoLeave = value end,
-                get = function(info) return FISConfig.autoLeave end
-            },
-        },
-    }
-    local messageOptions = {
-        name = L["Notify Message"],
-        type = "group",
-        args = {
-            autoInviteMsg = {
-                order = 1,
-                name = L["Auto Invite by In-game Whisper Message"],
-                type = "input",
-                confirm = true,
-                set = function(info, value) FISConfig.autoInviteMsg = value end,
-                get = function(info) return FISConfig.autoInviteMsg end
-            },
-            autoInviteBNMsg = {
-                order = 2,
-                name = L["Auto Invite by Battle.net Whisper Message"],
-                type = "input",
-                confirm = true,
-                set = function(info, value) FISConfig.autoInviteBNMsg = value end,
-                get = function(info) return FISConfig.autoInviteBNMsg end
-            },
-            autoLeaveMsg = {
-                order = 3,
-                name = L["Leave Queue by In-game Whisper Message"],
-                type = "input",
-                confirm = true,
-                set = function(info, value) FISConfig.autoLeaveMsg = value end,
-                get = function(info) return FISConfig.autoLeaveMsg end
-            },
-            enterQueueMsg = {
-                order = 11,
-                name = L["Entering Queue Message"],
-                type = "input",
-                width = "full",
-                confirm = true,
-                multiline = true,
-                set = function(info, value) FISConfig.enterQueueMsg = value end,
-                get = function(info) return FISConfig.enterQueueMsg end
-            },
-            fetchErrorMsg = {
-                order = 12,
-                name = L["Fetch Error Message"],
-                type = "input",
-                width = "full",
-                confirm = true,
-                multiline = true,
-                set = function(info, value) FISConfig.fetchErrorMsg = value end,
-                get = function(info) return FISConfig.fetchErrorMsg end
-            },
-            queryQueueMsg = {
-                order = 13,
-                name = L["Query Message"],
-                type = "input",
-                width = "full",
-                confirm = true,
-                multiline = true,
-                set = function(info, value) FISConfig.queryQueueMsg = value end,
-                get = function(info) return FISConfig.queryQueueMsg end
-            },
-            leaveQueueMsg = {
-                order = 14,
-                name = L["Leave Queue Message"],
-                type = "input",
-                width = "full",
-                confirm = true,
-                multiline = true,
-                set = function(info, value) FISConfig.leaveQueueMsg = value end,
-                get = function(info) return FISConfig.leaveQueueMsg end
-            },
-            welcomeMsg = {
-                order = 21,
-                name = L["Welcome Message"],
-                type = "input",
-                width = "full",
-                confirm = true,
-                multiline = true,
-                set = function(info, value) FISConfig.welcomeMsg = value end,
-                get = function(info) return FISConfig.welcomeMsg end
-            },
-            leaveMsg = {
-                order = 22,
-                name = L["Leave Message"],
-                type = "input",
-                width = "full",
-                confirm = true,
-                multiline = true,
-                set = function(info, value) FISConfig.leaveMsg = value end,
-                get = function(info) return FISConfig.leaveMsg end
-            },
-            textReplace = {
-                order = 91,
-                name = L["TEXT_REPLACE"],
-                type = "description",
-            },
-        },
-    }
-
-    AceConfig:RegisterOptionsTable("FIS", generalOptions, "/fis")
-    AceConfig:RegisterOptionsTable("FIS_MSG", messageOptions, nil)
-    AceConfigDialog:AddToBlizOptions("FIS", L["Free Instance Sharer"])
-    AceConfigDialog:AddToBlizOptions("FIS_MSG", L["Notify Message"], "FIS")
-end
-
-function eventFrame:PLAYER_ENTERING_WORLD()
-    RequestRaidInfo()
-end
-
-function eventFrame:UPDATE_INSTANCE_INFO()
-    if FISConfig.enable and FISConfig.autoExtend then
+function core:UPDATE_INSTANCE_INFO()
+    if addon.db.enable and addon.db.autoExtend then
         for i = 1, GetNumSavedInstances() do
             local _, _, _, difficulty, _, extended = GetSavedInstanceInfo(i)
             -- Thanks to SavedInstances
@@ -532,84 +283,89 @@ function eventFrame:UPDATE_INSTANCE_INFO()
             end
         end
     end
-    self.init(self)
+    if self.status == 0 then
+        self.status = 1
+        self:printStatus()
+    end
 end
 
-function eventFrame:PLAYER_CAMPING()
-    if FISConfig.preventAFK then
+function core:PLAYER_CAMPING()
+    if addon.db.preventAFK then
         local Popup = StaticPopup_Visible("CAMP")
         _G[Popup.."Button1"]:Click()
     end
 end
 
-function eventFrame:CHAT_MSG_WHISPER(...)
-    debug("Received whisper", ...)
-    if FISConfig.enable then
+function core:CHAT_MSG_WHISPER(...)
+    self:debug("Received whisper", ...)
+    if addon.db.enable then
         local message, sender = ...
 
-        local isInviteMsg = message == FISConfig.autoInviteMsg
-        local isLeaveMsg = message == FISConfig.autoLeaveMsg
-
-        if FISConfig.autoInvite and isInviteMsg then
-            self.addToQueue(self, sender)
-        elseif FISConfig.autoLeave and isLeaveMsg then
-            self.removeFromQueue(self, sender)
+        if addon.db.autoInvite and message == addon.db.autoInviteMsg then
+            self:addToQueue(sender)
+        elseif addon.db.autoLeave and message == addon.db.autoLeaveMsg then
+            self:removeFromQueue(sender)
         end
     end
 end
 
-function eventFrame:CHAT_MSG_BN_WHISPER(...)
-    debug("Received Battle.net whisper", ...)
-    if FISConfig.enable then
+function core:CHAT_MSG_BN_WHISPER(...)
+    self:debug("Received Battle.net whisper", ...)
+    if addon.db.enable then
         local message, _, _, _, _, _, _, _, _, _, _, _, presenceID = ...
 
         local _, _, _, _, _, bnetIDGameAccount = BNGetFriendInfoByID(presenceID)
         local _, characterName, _, realmName = BNGetGameAccountInfo(bnetIDGameAccount)
 
-        debug("BNGetFriendInfoByID", BNGetFriendInfoByID(presenceID))
-        debug("BNGetGameAccountInfo", BNGetGameAccountInfo(bnetIDGameAccount))
+        self:debug("BNGetFriendInfoByID", BNGetFriendInfoByID(presenceID))
+        self:debug("BNGetGameAccountInfo", BNGetGameAccountInfo(bnetIDGameAccount))
 
-        local isInviteMsg = message == FISConfig.autoInviteBNMsg
-
-        if FISConfig.autoInviteBN and isInviteMsg then
+        if addon.db.autoInviteBN and message == addon.db.autoInviteBNMsg then
             if characterName and characterName ~= "" and realmName and realmName ~= "" then
-                self.addToQueue(self, characterName .. "-" .. realmName)
+                self:addToQueue(characterName .. "-" .. realmName)
             else
-                local message = self.format(FISConfig.fetchErrorMsg, nil)
+                local message = self:format(addon.db.fetchErrorMsg, nil)
                 BNSendWhisper(presenceID, message)
             end
         end
     end
 end
 
-function eventFrame:GROUP_ROSTER_UPDATE()
-    -- NOTE: before inviting: 3 times, accepted or rejected: 2 times, leaving party: 2 times
-    if FISConfig.enable and not FISConfig.inviteOnly and FISConfig.autoQueue then
-        if status == 2 then
+function core:GROUP_ROSTER_UPDATE()
+    if addon.db.enable and not addon.db.inviteOnly and addon.db.autoQueue then
+        if self.status == 2 then
             if IsInGroup() then
                 if GetNumGroupMembers() > 1 then
                     -- accepted
-                    self.playerInvited(self)
+                    self:debug("Player accepted invition")
+                    self.invitedTime = time()
+                    if addon.db.welcomeMsg and addon.db.welcomeMsg ~= "" then
+                        local message = self.format(self, addon.db.welcomeMsg)
+                        SendChatMessage(message, "PARTY")
+                    end
+                    self.status = 3
                 end
-                -- otherwise still waiting
+                -- still waiting
             else
                 -- rejected
-                self.playerRejected(self)
+                self:debug("Player rejected invition")
+                self.status = 1
             end
-        elseif status == 3 then
+        elseif self.status == 3 then
             if not IsInGroup() then
                 -- player leaved
-                self.playerLeaved(self)
+                self:debug("Player leaved group")
+                self.status = 1
             end
         end
     end
 end
 
-function eventFrame:CHAT_MSG_PARTY(...)
-    debug("Received party message", ...)
+function core:CHAT_MSG_PARTY(...)
+    self:debug("Received party message", ...)
     local message = ...
 
-    if FISConfig.enable and not FISConfig.inviteOnly and FISConfig.autoQueue then
+    if addon.db.enable and not addon.db.inviteOnly and addon.db.autoQueue then
         local RaidDifficulty = GetRaidDifficultyID()
         local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
         local isTenPlayer = LegacyRaidDifficulty == 5 or LegacyRaidDifficulty == 3

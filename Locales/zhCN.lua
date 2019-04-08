@@ -1,4 +1,5 @@
-local L = LibStub("AceLocale-3.0"):NewLocale("FreeInstanceSharer", "zhCN")
+local addonName, addon = ...
+local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "zhCN")
 
 -- print in ChatFrame
 L["FIS:"] = "|cFF70B8FF便利CD分享|r："

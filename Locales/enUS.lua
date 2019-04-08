@@ -1,3 +1,4 @@
+local addonName, addon = ...
 local L = LibStub("AceLocale-3.0"):NewLocale("FreeInstanceSharer", "enUS", true)
 
 -- print in ChatFrame

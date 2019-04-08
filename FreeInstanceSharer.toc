@@ -11,3 +11,4 @@ Libs\load_libs.xml
 Locales\Locales.xml
 
 FreeInstanceSharer.lua
+Config.lua
