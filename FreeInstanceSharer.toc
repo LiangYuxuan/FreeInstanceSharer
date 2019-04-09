@@ -7,6 +7,7 @@
 ## Version: @project-version@
 ## X-ReleaseDate: @project-date-iso@
 ## X-License: MIT
+## X-Curse-Project-ID: 319097
 ## SavedVariablesPerCharacter: FISConfig
 
 Libs\load_libs.xml

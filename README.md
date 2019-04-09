@@ -1,18 +1,18 @@
 # FreeInstanceSharer
 
-A light World of Warcraft addon to share your saved instance to others.
+A light World of Warcraft addon to share your saved lockouts to others.
 
 [![Build Status](https://travis-ci.org/LiangYuxuan/FreeInstanceSharer.svg?branch=master)](https://travis-ci.org/LiangYuxuan/FreeInstanceSharer)
 
 ## Introduction
 
-Share saved instance by invite other players by in-game whisper or battle.net message. Also with other supporting feature.
+Share your saved lockouts by inviting other players when received preset in-game whisper or Battle.net message, with other support feature.
 
-* Invite player who send whisper to you.
-* Auto extending saved instance.
+* Invite player who send preset message to you.
+* Auto extend saved lockouts that willing to share.
 * Auto change difficulty.
-* Queue when multiple player whisper to you.
-* Set max waiting time.
+* Queue them when more than one player wishes to be invited.
+* Set max time to wait players to enter instances.
 * Customize your own message.
 
 ## Future plans
