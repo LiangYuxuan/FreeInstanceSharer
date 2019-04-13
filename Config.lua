@@ -1,6 +1,6 @@
 local addonName, addon = ...
 local Core = addon.Core
-local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+local L = addon.L
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
