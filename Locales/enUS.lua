@@ -1,5 +1,5 @@
 local addonName, addon = ...
-local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
+local L = {}
 
 L["Auto Entering Queue"] = true
 L["Auto Extend Saved Instance"] = true
@@ -34,3 +34,9 @@ L["Welcome Message"] = true
 L["You can insert following words into the text field, and it will be replace by corresponding variables."] = true
 L["You have MTIME second(s) to enter instance. Difficulty set to 25 players normal in default. Send '10' in party to set to 10 players, 'H' to set to Heroic."] = true
 L["You're queued, and your postion is QCURR."] = true
+
+addon.L = setmetatable(L, {
+    __index = function (self, key)
+        return self[key] == true and key or self[key] or key
+    end
+})

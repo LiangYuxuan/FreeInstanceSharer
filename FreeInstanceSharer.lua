@@ -1,6 +1,6 @@
 local addonName, addon = ...
 local Core = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0")
-local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+local L = addon.L
 addon.Core = Core
 _G[addonName] = addon
 
