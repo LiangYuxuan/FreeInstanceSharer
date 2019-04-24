@@ -164,6 +164,7 @@ function Core:OnUpdate()
                 addon.db.maxWaitingTime and addon.db.maxWaitingTime ~= 0 and
                 time() - self.invitedTime >= addon.db.maxWaitingTime
             ) then
+                self:debug("Bot leaving group: max waiting time exceeded")
                 self:leaveGroup()
             end
 
@@ -171,6 +172,7 @@ function Core:OnUpdate()
             if addon.db.autoLeave then
                 local _, _, _, instanceID = UnitPosition("party1")
                 if instanceID and autoLeaveInstanceMapID[instanceID] then
+                    self:debug("Bot leaving group: player entered instance")
                     self:leaveGroup()
                 end
             end
@@ -272,7 +274,6 @@ end
 -- transfer leader and leave party
 -- return nil
 function Core:leaveGroup()
-    self:debug("BOT leaving group")
     if self.status == 3 then
         if addon.db.leaveMsg and addon.db.leaveMsg ~= "" then
             local message = self:format(addon.db.leaveMsg)
