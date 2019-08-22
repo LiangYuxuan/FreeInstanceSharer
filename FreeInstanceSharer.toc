@@ -1,4 +1,4 @@
-## Interface: 80100
+## Interface: 80200
 ## Title: Free Instance Sharer
 ## Title-zhCN: 便利CD分享
 ## Notes: Simply sharing your saved instance to others.
