@@ -120,6 +120,7 @@ local autoLeaveInstanceMapID = {
     -- [1754] = {23}, -- Freehold
     -- [1762] = {23}, -- Kings' Rest
     -- [1841] = {23}, -- The Underrot
+    -- [2097] = {23}, -- Operation: Mechagon
 }
 
 function Core:OnEnable()
