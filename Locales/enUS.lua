@@ -1,4 +1,4 @@
-local addonName, addon = ...
+local addon = select(2, ...)
 local L = {}
 
 L["Auto Entering Queue"] = "Auto Entering Queue"

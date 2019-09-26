@@ -7,7 +7,7 @@ _G[addonName] = addon
 -- Lua functions
 local _G = _G
 local print, tinsert, tremove, time, gsub, pairs = print, tinsert, tremove, time, gsub, pairs
-local tonumber, tostring, strfind = tonumber, tostring, strfind
+local tonumber, strfind = tonumber, strfind
 
 -- WoW API / Variables
 local BNGetFriendInfoByID = BNGetFriendInfoByID
@@ -98,7 +98,7 @@ local autoLeaveInstanceMapID = {
     [720] = {3, 4, 5, 6}, -- Firelands
     [967] = {3, 4, 5, 6}, -- Dragon Soul
     -- Mists of Pandaria
-    [966] = {3, 4, 5, 6}, -- Terrace of Endless Spring
+    [996] = {3, 4, 5, 6}, -- Terrace of Endless Spring
     [1008] = {3, 4, 5, 6}, -- Mogu'shan Vaults
     [1098] = {3, 4, 5, 6}, -- Throne of Thunder
     [1136] = {15}, -- Siege of Orgrimmar
@@ -129,7 +129,7 @@ function Core:OnEnable()
     else
         for key, value in pairs(defaultConfig) do
             if not FISConfig[key] then
-                FISConfig[key] = defaultConfig[key]
+                FISConfig[key] = value
             end
         end
     end
