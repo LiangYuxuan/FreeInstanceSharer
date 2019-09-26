@@ -17,7 +17,6 @@ local GetLegacyRaidDifficultyID = GetLegacyRaidDifficultyID
 local GetNumGroupMembers = GetNumGroupMembers
 local GetNumSavedInstances = GetNumSavedInstances
 local GetRaidDifficultyID = GetRaidDifficultyID
-local GetRealmName = GetRealmName
 local GetSavedInstanceChatLink = GetSavedInstanceChatLink
 local GetSavedInstanceInfo = GetSavedInstanceInfo
 local InviteUnit = InviteUnit
@@ -31,7 +30,6 @@ local SetDungeonDifficultyID = SetDungeonDifficultyID
 local SetLegacyRaidDifficultyID = SetLegacyRaidDifficultyID
 local SetRaidDifficultyID = SetRaidDifficultyID
 local SetSavedInstanceExtend = SetSavedInstanceExtend
-local UnitName = UnitName
 local UnitPosition = UnitPosition
 
 local DIFFICULTY_PRIMARYRAID_NORMAL = DIFFICULTY_PRIMARYRAID_NORMAL
@@ -52,6 +50,7 @@ local REDFONT = RED_FONT_COLOR_CODE
 local GREENFONT = GREEN_FONT_COLOR_CODE
 
 Core.addonPrefix = "\124cFF70B8FF" .. addonName .. "\124r:"
+Core.playerFullName = UnitName('player') .. '-' .. GetRealmName()
 
 function Core:debug(...)
     if addon.db and addon.db.debug then
@@ -181,7 +180,6 @@ function Core:OnUpdate()
 end
 
 -- print current status and config to chatframe
--- return nil
 function Core:printStatus()
     if addon.db.enable then
         if addon.db.inviteOnly then
@@ -194,20 +192,25 @@ function Core:printStatus()
     end
 end
 
--- format message string
--- return formated string
-function Core:format(message, curr)
+-- send formatted message
+function Core:sendMessage(message, chatType, channel, currIndex)
+    if not message or message == '' then return end
+    
     if curr then
-        message = gsub(message, 'QCURR', curr)
+        message = gsub(message, 'QCURR', currIndex)
     end
     message = gsub(message, 'QLEN', #self.queue)
     message = gsub(message, 'MTIME', addon.db.maxWaitingTime)
-    message = gsub(message, 'NAME', UnitName('player') .. '-' .. GetRealmName())
-    return message
+    message = gsub(message, 'NAME', self.playerFullName)
+
+    if chatType == 'BNWHISPER' then
+        BNSendWhisper(channel, message)
+    end
+
+    return SendChatMessage(message, chatType, nil, channel)
 end
 
 -- add a player to queue
--- return nil - not enabled 0 - success 1 - fail(exists)
 function Core:addToQueue(name)
     self:debug("Adding to queue:", name)
     if addon.db.enable then
@@ -221,26 +224,17 @@ function Core:addToQueue(name)
             end
             if not result then
                 tinsert(self.queue, name)
-                if addon.db.enterQueueMsg and addon.db.enterQueueMsg ~= '' then
-                    local message = self:format(addon.db.enterQueueMsg, #self.queue)
-                    SendChatMessage(message, 'WHISPER', nil, name)
-                end
+                self:sendMessage(addon.db.enterQueueMsg, 'WHISPER', name, #self.queue)
             else
-                if addon.db.queryQueueMsg and addon.db.queryQueueMsg ~= '' then
-                    local message = self:format(addon.db.queryQueueMsg, result)
-                    SendChatMessage(message, 'WHISPER', nil, name)
-                end
+                self:sendMessage(addon.db.queryQueueMsg, 'WHISPER', name, result)
             end
-            return not result
         else
             self:inviteToGroup(name)
-            return 0
         end
     end
 end
 
 -- remove a player from queue
--- return nil
 function Core:removeFromQueue(name)
     self:debug("Removing from queue:", name)
     for index, curr in pairs(self.queue) do
@@ -249,12 +243,10 @@ function Core:removeFromQueue(name)
             break
         end
     end
-    local message = self:format(addon.db.leaveQueueMsg)
-    SendChatMessage(message, 'WHISPER', nil, name)
+    self:sendMessage(addon.db.leaveQueueMsg, 'WHISPER', name)
 end
 
 -- invite player
--- return nil
 function Core:inviteToGroup(name)
     self:debug("Inviting to group:", name)
     if addon.db.enable then
@@ -272,13 +264,9 @@ function Core:inviteToGroup(name)
 end
 
 -- transfer leader and leave party
--- return nil
 function Core:leaveGroup()
     if self.status == 3 then
-        if addon.db.leaveMsg and addon.db.leaveMsg ~= '' then
-            local message = self:format(addon.db.leaveMsg)
-            SendChatMessage(message, 'PARTY')
-        end
+        self:sendMessage(message, 'PARTY')
         -- set status first to prevent GROUP_ROSTER_UPDATE handle
         self.status = 1
         PromoteToLeader('party1')
@@ -286,7 +274,7 @@ function Core:leaveGroup()
     end
 end
 
-function Core:UPDATE_INSTANCE_INFO(event)
+function Core:UPDATE_INSTANCE_INFO()
     if addon.db.enable and addon.db.autoExtend then
         for i = 1, GetNumSavedInstances() do
             local _, _, _, difficulty, _, extended = GetSavedInstanceInfo(i)
@@ -311,14 +299,14 @@ function Core:UPDATE_INSTANCE_INFO(event)
     end
 end
 
-function Core:PLAYER_CAMPING(event)
+function Core:PLAYER_CAMPING()
     if addon.db.preventAFK then
         local Popup = StaticPopup_Visible('CAMP')
         _G[Popup .. 'Button1']:Click()
     end
 end
 
-function Core:CHAT_MSG_WHISPER(event, ...)
+function Core:CHAT_MSG_WHISPER(_, ...)
     self:debug("Received whisper", ...)
     if addon.db.enable then
         local message, sender = ...
@@ -331,7 +319,7 @@ function Core:CHAT_MSG_WHISPER(event, ...)
     end
 end
 
-function Core:CHAT_MSG_BN_WHISPER(event, ...)
+function Core:CHAT_MSG_BN_WHISPER(_, ...)
     self:debug("Received Battle.net whisper", ...)
     if addon.db.enable then
         local message, _, _, _, _, _, _, _, _, _, _, _, presenceID = ...
@@ -346,14 +334,13 @@ function Core:CHAT_MSG_BN_WHISPER(event, ...)
             if characterName and characterName ~= '' and realmName and realmName ~= '' then
                 self:addToQueue(characterName .. '-' .. realmName)
             else
-                local message = self:format(addon.db.fetchErrorMsg, nil)
-                BNSendWhisper(presenceID, message)
+                self:sendMessage(addon.db.fetchErrorMsg, 'BNWHISPER', presenceID)
             end
         end
     end
 end
 
-function Core:GROUP_ROSTER_UPDATE(event)
+function Core:GROUP_ROSTER_UPDATE()
     if addon.db.enable and not addon.db.inviteOnly and addon.db.autoQueue then
         if self.status == 2 then
             if IsInGroup() then
@@ -361,10 +348,7 @@ function Core:GROUP_ROSTER_UPDATE(event)
                     -- accepted
                     self:debug("Player accepted invition")
                     self.invitedTime = time()
-                    if addon.db.welcomeMsg and addon.db.welcomeMsg ~= '' then
-                        local message = self:format(addon.db.welcomeMsg)
-                        SendChatMessage(message, 'PARTY')
-                    end
+                    self:sendMessage(addon.db.welcomeMsg, 'PARTY')
                     self.status = 3
                 end
                 -- still waiting
@@ -383,7 +367,7 @@ function Core:GROUP_ROSTER_UPDATE(event)
     end
 end
 
-function Core:CHAT_MSG_PARTY(event, ...)
+function Core:CHAT_MSG_PARTY(_, ...)
     self:debug("Received party message", ...)
     local message = ...
 
