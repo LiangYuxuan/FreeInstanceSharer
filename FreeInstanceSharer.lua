@@ -10,8 +10,6 @@ local print, tinsert, tremove, time, gsub, pairs = print, tinsert, tremove, time
 local tonumber, strfind = tonumber, strfind
 
 -- WoW API / Variables
-local BNGetFriendInfoByID = BNGetFriendInfoByID
-local BNGetGameAccountInfo = BNGetGameAccountInfo
 local BNSendWhisper = BNSendWhisper
 local GetLegacyRaidDifficultyID = GetLegacyRaidDifficultyID
 local GetNumGroupMembers = GetNumGroupMembers
@@ -19,9 +17,7 @@ local GetNumSavedInstances = GetNumSavedInstances
 local GetRaidDifficultyID = GetRaidDifficultyID
 local GetSavedInstanceChatLink = GetSavedInstanceChatLink
 local GetSavedInstanceInfo = GetSavedInstanceInfo
-local InviteUnit = InviteUnit
 local IsInGroup = IsInGroup
-local LeaveParty = LeaveParty
 local PromoteToLeader = PromoteToLeader
 local RequestRaidInfo = RequestRaidInfo
 local ResetInstances = ResetInstances
@@ -54,7 +50,7 @@ Core.playerFullName = UnitName('player') .. '-' .. GetRealmName()
 
 function Core:debug(...)
     if addon.db and addon.db.debug then
-        print(Core.addonPrefix, ...)
+        print(Core.addonPrefix, format(...))
     end
 end
 
@@ -93,7 +89,7 @@ local autoLeaveInstanceMapID = {
     -- Cataclysm
     [669] = {3, 4, 5, 6}, -- Blackwing Descent
     [754] = {3, 4, 5, 6}, -- Throne of the Four Winds
-    [720] = {3, 4, 5, 6}, -- Firelands
+    [720] = {14, 15}, -- Firelands
     [967] = {3, 4, 5, 6}, -- Dragon Soul
     -- Mists of Pandaria
     [996] = {3, 4, 5, 6}, -- Terrace of Endless Spring
@@ -212,31 +208,29 @@ end
 
 -- add a player to queue
 function Core:addToQueue(name)
-    self:debug("Adding to queue:", name)
-    if addon.db.enable then
-        if not addon.db.inviteOnly and addon.db.autoQueue then
-            local result
-            for index, curr in pairs(self.queue) do
-                if curr == name then
-                    result = index
-                    break
-                end
+    self:debug("Adding %s to queue", name)
+    if not addon.db.inviteOnly and addon.db.autoQueue then
+        local result
+        for index, curr in pairs(self.queue) do
+            if curr == name then
+                result = index
+                break
             end
-            if not result then
-                tinsert(self.queue, name)
-                self:sendMessage(addon.db.enterQueueMsg, 'WHISPER', name, #self.queue)
-            else
-                self:sendMessage(addon.db.queryQueueMsg, 'WHISPER', name, result)
-            end
-        else
-            self:inviteToGroup(name)
         end
+        if not result then
+            tinsert(self.queue, name)
+            self:sendMessage(addon.db.enterQueueMsg, 'WHISPER', name, #self.queue)
+        else
+            self:sendMessage(addon.db.queryQueueMsg, 'WHISPER', name, result)
+        end
+    else
+        self:inviteToGroup(name)
     end
 end
 
 -- remove a player from queue
 function Core:removeFromQueue(name)
-    self:debug("Removing from queue:", name)
+    self:debug("Removing %s from queue", name)
     for index, curr in pairs(self.queue) do
         if curr == name then
             tremove(self.queue, index)
@@ -248,19 +242,18 @@ end
 
 -- invite player
 function Core:inviteToGroup(name)
-    self:debug("Inviting to group:", name)
-    if addon.db.enable then
-        SetDungeonDifficultyID(DIFFICULTY_DUNGEON_MYTHIC) -- Dungeon Mythic
-        SetRaidDifficultyID(DIFFICULTY_PRIMARYRAID_NORMAL) -- Raid Normal
-        SetLegacyRaidDifficultyID(DIFFICULTY_RAID25_NORMAL) -- Legacy Raid 25 Players Normal
-        ResetInstances()
-        if not addon.db.inviteOnly and addon.db.autoQueue then
-            self.status = 2
-        else
-            self.status = 1
-        end
-        InviteUnit(name)
+    self:debug("Inviting %s to party", name)
+
+    SetDungeonDifficultyID(DIFFICULTY_DUNGEON_MYTHIC) -- Dungeon Mythic
+    SetRaidDifficultyID(DIFFICULTY_PRIMARYRAID_NORMAL) -- Raid Normal
+    SetLegacyRaidDifficultyID(DIFFICULTY_RAID25_NORMAL) -- Legacy Raid 25 Players Normal
+    ResetInstances()
+    if not addon.db.inviteOnly and addon.db.autoQueue then
+        self.status = 2
+    else
+        self.status = 1
     end
+    C_PartyInfo.ConfirmInviteUnit(name)
 end
 
 -- transfer leader and leave party
@@ -270,12 +263,14 @@ function Core:leaveGroup()
         -- set status first to prevent GROUP_ROSTER_UPDATE handle
         self.status = 1
         PromoteToLeader('party1')
-        LeaveParty()
+        C_PartyInfo.ConfirmLeaveParty()
     end
 end
 
 function Core:UPDATE_INSTANCE_INFO()
-    if addon.db.enable and addon.db.autoExtend then
+    if not addon.db.enable then return end
+
+    if addon.db.autoExtend then
         for i = 1, GetNumSavedInstances() do
             local _, _, _, difficulty, _, extended = GetSavedInstanceInfo(i)
             -- Thanks to SavedInstances
@@ -293,6 +288,7 @@ function Core:UPDATE_INSTANCE_INFO()
             end
         end
     end
+    
     if self.status == 0 then
         self.status = 1
         self:printStatus()
@@ -300,93 +296,84 @@ function Core:UPDATE_INSTANCE_INFO()
 end
 
 function Core:PLAYER_CAMPING()
-    if addon.db.preventAFK then
-        local Popup = StaticPopup_Visible('CAMP')
-        _G[Popup .. 'Button1']:Click()
+    if not addon.db.preventAFK then return end
+
+    local Popup = StaticPopup_Visible('CAMP')
+    _G[Popup .. 'Button1']:Click()
+end
+
+function Core:CHAT_MSG_WHISPER(_, text, sender)
+    self:debug("Received whisper '%s' from %s", text, sender)
+    if not addon.db.endable then return end
+
+    if addon.db.autoInvite and text == addon.db.autoInviteMsg then
+        self:addToQueue(sender)
+    elseif addon.db.autoLeave and text == addon.db.autoLeaveMsg then
+        self:removeFromQueue(sender)
     end
 end
 
-function Core:CHAT_MSG_WHISPER(_, ...)
-    self:debug("Received whisper", ...)
-    if addon.db.enable then
-        local message, sender = ...
+function Core:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _, guid, presenceID)
+    self:debug("Received Battle.net whisper '%s' from %s(%s), presenceID = %s", text, playerName, guid, presenceID)
+    if not addon.db.enable or not addon.db.autoInviteBN or text ~= addon.db.autoInviteBNMsg then return end
 
-        if addon.db.autoInvite and message == addon.db.autoInviteMsg then
-            self:addToQueue(sender)
-        elseif addon.db.autoLeave and message == addon.db.autoLeaveMsg then
-            self:removeFromQueue(sender)
-        end
-    end
-end
+    local gameAccountInfo = C_BattleNet.GetGameAccountInfoByGUID(guid)
+    local characterName, realmName = gameAccountInfo.characterName, gameAccountInfo.realmName
 
-function Core:CHAT_MSG_BN_WHISPER(_, ...)
-    self:debug("Received Battle.net whisper", ...)
-    if addon.db.enable then
-        local message, _, _, _, _, _, _, _, _, _, _, _, presenceID = ...
+    self:debug("Received character %s on %s", characterName, realmName)
 
-        local _, _, _, _, _, bnetIDGameAccount = BNGetFriendInfoByID(presenceID)
-        local _, characterName, _, realmName = BNGetGameAccountInfo(bnetIDGameAccount)
-
-        self:debug("BNGetFriendInfoByID", BNGetFriendInfoByID(presenceID))
-        self:debug("BNGetGameAccountInfo", BNGetGameAccountInfo(bnetIDGameAccount))
-
-        if addon.db.autoInviteBN and message == addon.db.autoInviteBNMsg then
-            if characterName and characterName ~= '' and realmName and realmName ~= '' then
-                self:addToQueue(characterName .. '-' .. realmName)
-            else
-                self:sendMessage(addon.db.fetchErrorMsg, 'BNWHISPER', presenceID)
-            end
-        end
+    if characterName and characterName ~= '' and realmName and realmName ~= '' then
+        self:addToQueue(characterName .. '-' .. realmName)
+    else
+        self:sendMessage(addon.db.fetchErrorMsg, 'BNWHISPER', presenceID)
     end
 end
 
 function Core:GROUP_ROSTER_UPDATE()
-    if addon.db.enable and not addon.db.inviteOnly and addon.db.autoQueue then
-        if self.status == 2 then
-            if IsInGroup() then
-                if GetNumGroupMembers() > 1 then
-                    -- accepted
-                    self:debug("Player accepted invition")
-                    self.invitedTime = time()
-                    self:sendMessage(addon.db.welcomeMsg, 'PARTY')
-                    self.status = 3
-                end
-                -- still waiting
-            else
-                -- rejected
-                self:debug("Player rejected invition")
-                self.status = 1
+    if not addon.db.enable or addon.db.inviteOnly or not addon.db.autoQueue then return end
+    
+    if self.status == 2 then
+        if IsInGroup() then
+            if GetNumGroupMembers() > 1 then
+                -- accepted
+                self:debug("Player accepted invition")
+                self.invitedTime = time()
+                self:sendMessage(addon.db.welcomeMsg, 'PARTY')
+                self.status = 3
             end
-        elseif self.status == 3 then
-            if not IsInGroup() then
-                -- player left
-                self:debug("Player left group")
-                self.status = 1
-            end
+            -- still waiting
+        else
+            -- rejected
+            self:debug("Player rejected invition")
+            self.status = 1
+        end
+    elseif self.status == 3 then
+        if not IsInGroup() then
+            -- player left
+            self:debug("Player left group")
+            self.status = 1
         end
     end
 end
 
-function Core:CHAT_MSG_PARTY(_, ...)
-    self:debug("Received party message", ...)
-    local message = ...
+function Core:CHAT_MSG_PARTY(_, text, playerName)
+    self:debug("Received party message '%s' from %s", text, playerName)
+    if not addon.db.enable or addon.db.inviteOnly or not addon.db.autoQueue then return end
 
-    if addon.db.enable and not addon.db.inviteOnly and addon.db.autoQueue then
-        local RaidDifficulty = GetRaidDifficultyID()
-        local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
-        local isTenPlayer = LegacyRaidDifficulty == 5 or LegacyRaidDifficulty == 3
-        local isHeroic = RaidDifficulty == 15
+    local RaidDifficulty = GetRaidDifficultyID()
+    local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
+    local isTenPlayer = LegacyRaidDifficulty == 5 or LegacyRaidDifficulty == 3
+    local isHeroic = RaidDifficulty == 15
 
-        isTenPlayer = strfind(message, '10')
-        isHeroic = strfind(message, 'H') or strfind(message, 'h')
-        RaidDifficulty = isHeroic and DIFFICULTY_PRIMARYRAID_HEROIC or DIFFICULTY_PRIMARYRAID_NORMAL
-        LegacyRaidDifficulty = isHeroic and (
-            isTenPlayer and DIFFICULTY_RAID10_HEROIC or DIFFICULTY_RAID25_HEROIC
-        ) or (
-            isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL
-        )
+    isTenPlayer = strfind(text, '10')
+    isHeroic = strfind(text, 'H') or strfind(text, 'h')
+    RaidDifficulty = isHeroic and DIFFICULTY_PRIMARYRAID_HEROIC or DIFFICULTY_PRIMARYRAID_NORMAL
+    LegacyRaidDifficulty = isHeroic and (
+        isTenPlayer and DIFFICULTY_RAID10_HEROIC or DIFFICULTY_RAID25_HEROIC
+    ) or (
+        isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL
+    )
 
-        SetRaidDifficultyID(RaidDifficulty)
-        SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
-    end
+    SetRaidDifficultyID(RaidDifficulty)
+    SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
 end
