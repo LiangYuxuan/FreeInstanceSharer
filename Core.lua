@@ -1,8 +1,4 @@
-local addonName, addon = ...
-local Core = LibStub('AceAddon-3.0'):NewAddon(addonName, 'AceEvent-3.0', 'AceTimer-3.0', 'AceBucket-3.0')
-local L = addon.L
-addon.Core = Core
-_G[addonName] = addon
+local FIS, L = select(2, ...)
 
 -- Lua functions
 local _G = _G
@@ -40,19 +36,9 @@ local START = START
 
 -- GLOBALS: FISConfig, StaticPopup_Visible
 
-local DIFFICULTY_DUNGEON_MYTHIC = 23
 local FONTEND = FONT_COLOR_CODE_CLOSE
 local REDFONT = RED_FONT_COLOR_CODE
 local GREENFONT = GREEN_FONT_COLOR_CODE
-
-Core.addonPrefix = "\124cFF70B8FF" .. addonName .. "\124r:"
-Core.playerFullName = UnitName('player') .. '-' .. GetRealmName()
-
-function Core:debug(...)
-    if addon.db and addon.db.debug then
-        print(Core.addonPrefix, format(...))
-    end
-end
 
 local defaultConfig = {
     ["debug"] = false, -- Debug mode
@@ -117,7 +103,7 @@ local autoLeaveInstanceMapID = {
     -- [2097] = {23}, -- Operation: Mechagon
 }
 
-function Core:OnEnable()
+function FIS:OnInitialize()
     if not FISConfig then
         FISConfig = defaultConfig
     else
@@ -127,25 +113,39 @@ function Core:OnEnable()
             end
         end
     end
-    addon.db = FISConfig
-
-    self:RegisterBucketEvent('PLAYER_ENTERING_WORLD', 1, RequestRaidInfo)
-    self:RegisterEvent('UPDATE_INSTANCE_INFO')
-    self:RegisterEvent('PLAYER_CAMPING')
-    self:RegisterEvent('CHAT_MSG_WHISPER')
-    self:RegisterEvent('CHAT_MSG_BN_WHISPER')
-    self:RegisterEvent('GROUP_ROSTER_UPDATE')
-    self:RegisterEvent('CHAT_MSG_PARTY')
-
-    self:ScheduleRepeatingTimer('OnUpdate', .5)
-
-    self.status = 0
-    self.queue = {}
+    self.db = FISConfig
 end
 
-function Core:OnUpdate()
-    if not addon.db then return end
-    if addon.db.enable and not addon.db.inviteOnly then
+function FIS:OnEnable()
+    self:Toggle()
+end
+
+function FIS:Toggle()
+    self:UnregisterAllEvents()
+
+    if self.db.enable then
+        self.status = 0
+        self.queue = {}
+
+        self:RegisterBucketEvent('PLAYER_ENTERING_WORLD', 1, RequestRaidInfo)
+        self:RegisterEvent('UPDATE_INSTANCE_INFO')
+
+        self:RegisterEvent('PLAYER_CAMPING')
+
+        self:RegisterEvent('CHAT_MSG_WHISPER')
+        self:RegisterEvent('CHAT_MSG_BN_WHISPER')
+        self:RegisterEvent('GROUP_ROSTER_UPDATE')
+        self:RegisterEvent('CHAT_MSG_PARTY')
+
+        self:ScheduleRepeatingTimer('OnUpdate', .5)
+    else
+        -- nothing no here now
+    end
+end
+
+function FIS:OnUpdate()
+    if not FIS.db then return end
+    if FIS.db.enable and not FIS.db.inviteOnly then
         if self.status == 1 then
             -- check queue
             if #self.queue > 0 then
@@ -156,15 +156,15 @@ function Core:OnUpdate()
         elseif self.status == 3 then
             -- check max waiting time
             if (
-                addon.db.maxWaitingTime and addon.db.maxWaitingTime ~= 0 and
-                time() - self.invitedTime >= addon.db.maxWaitingTime
+                FIS.db.maxWaitingTime and FIS.db.maxWaitingTime ~= 0 and
+                time() - self.invitedTime >= FIS.db.maxWaitingTime
             ) then
                 self:debug("Bot leaving group: max waiting time exceeded")
                 self:leaveGroup()
             end
 
             -- check player place
-            if addon.db.autoLeave then
+            if FIS.db.autoLeave then
                 local _, _, _, instanceID = UnitPosition('party1')
                 if instanceID and autoLeaveInstanceMapID[instanceID] then
                     self:debug("Bot leaving group: player entered instance")
@@ -176,9 +176,9 @@ function Core:OnUpdate()
 end
 
 -- print current status and config to chatframe
-function Core:printStatus()
-    if addon.db.enable then
-        if addon.db.inviteOnly then
+function FIS:printStatus()
+    if FIS.db.enable then
+        if FIS.db.inviteOnly then
             print(self.addonPrefix .. GREENFONT .. L["Invite Only Mode"] .. FONTEND)
         else
             print(self.addonPrefix .. GREENFONT .. START .. FONTEND .. SOCIAL_SHARE_TEXT)
@@ -189,14 +189,14 @@ function Core:printStatus()
 end
 
 -- send formatted message
-function Core:sendMessage(message, chatType, channel, currIndex)
+function FIS:sendMessage(message, chatType, channel, currIndex)
     if not message or message == '' then return end
-    
+
     if curr then
         message = gsub(message, 'QCURR', currIndex)
     end
     message = gsub(message, 'QLEN', #self.queue)
-    message = gsub(message, 'MTIME', addon.db.maxWaitingTime)
+    message = gsub(message, 'MTIME', FIS.db.maxWaitingTime)
     message = gsub(message, 'NAME', self.playerFullName)
 
     if chatType == 'BNWHISPER' then
@@ -207,9 +207,9 @@ function Core:sendMessage(message, chatType, channel, currIndex)
 end
 
 -- add a player to queue
-function Core:addToQueue(name)
+function FIS:addToQueue(name)
     self:debug("Adding %s to queue", name)
-    if not addon.db.inviteOnly and addon.db.autoQueue then
+    if not FIS.db.inviteOnly and FIS.db.autoQueue then
         local result
         for index, curr in pairs(self.queue) do
             if curr == name then
@@ -219,9 +219,9 @@ function Core:addToQueue(name)
         end
         if not result then
             tinsert(self.queue, name)
-            self:sendMessage(addon.db.enterQueueMsg, 'WHISPER', name, #self.queue)
+            self:sendMessage(FIS.db.enterQueueMsg, 'WHISPER', name, #self.queue)
         else
-            self:sendMessage(addon.db.queryQueueMsg, 'WHISPER', name, result)
+            self:sendMessage(FIS.db.queryQueueMsg, 'WHISPER', name, result)
         end
     else
         self:inviteToGroup(name)
@@ -229,7 +229,7 @@ function Core:addToQueue(name)
 end
 
 -- remove a player from queue
-function Core:removeFromQueue(name)
+function FIS:removeFromQueue(name)
     self:debug("Removing %s from queue", name)
     for index, curr in pairs(self.queue) do
         if curr == name then
@@ -237,18 +237,18 @@ function Core:removeFromQueue(name)
             break
         end
     end
-    self:sendMessage(addon.db.leaveQueueMsg, 'WHISPER', name)
+    self:sendMessage(FIS.db.leaveQueueMsg, 'WHISPER', name)
 end
 
 -- invite player
-function Core:inviteToGroup(name)
+function FIS:inviteToGroup(name)
     self:debug("Inviting %s to party", name)
 
-    SetDungeonDifficultyID(DIFFICULTY_DUNGEON_MYTHIC) -- Dungeon Mythic
+    SetDungeonDifficultyID(23) -- Dungeon Mythic
     SetRaidDifficultyID(DIFFICULTY_PRIMARYRAID_NORMAL) -- Raid Normal
     SetLegacyRaidDifficultyID(DIFFICULTY_RAID25_NORMAL) -- Legacy Raid 25 Players Normal
     ResetInstances()
-    if not addon.db.inviteOnly and addon.db.autoQueue then
+    if not FIS.db.inviteOnly and FIS.db.autoQueue then
         self.status = 2
     else
         self.status = 1
@@ -257,7 +257,7 @@ function Core:inviteToGroup(name)
 end
 
 -- transfer leader and leave party
-function Core:leaveGroup()
+function FIS:leaveGroup()
     if self.status == 3 then
         self:sendMessage(message, 'PARTY')
         -- set status first to prevent GROUP_ROSTER_UPDATE handle
@@ -267,10 +267,10 @@ function Core:leaveGroup()
     end
 end
 
-function Core:UPDATE_INSTANCE_INFO()
-    if not addon.db.enable then return end
+function FIS:UPDATE_INSTANCE_INFO()
+    if not FIS.db.enable then return end
 
-    if addon.db.autoExtend then
+    if FIS.db.autoExtend then
         for i = 1, GetNumSavedInstances() do
             local _, _, _, difficulty, _, extended = GetSavedInstanceInfo(i)
             -- Thanks to SavedInstances
@@ -288,34 +288,34 @@ function Core:UPDATE_INSTANCE_INFO()
             end
         end
     end
-    
+
     if self.status == 0 then
         self.status = 1
         self:printStatus()
     end
 end
 
-function Core:PLAYER_CAMPING()
-    if not addon.db.preventAFK then return end
+function FIS:PLAYER_CAMPING()
+    if not FIS.db.preventAFK then return end
 
     local Popup = StaticPopup_Visible('CAMP')
     _G[Popup .. 'Button1']:Click()
 end
 
-function Core:CHAT_MSG_WHISPER(_, text, sender)
+function FIS:CHAT_MSG_WHISPER(_, text, sender)
     self:debug("Received whisper '%s' from %s", text, sender)
-    if not addon.db.endable then return end
+    if not FIS.db.endable then return end
 
-    if addon.db.autoInvite and text == addon.db.autoInviteMsg then
+    if FIS.db.autoInvite and text == FIS.db.autoInviteMsg then
         self:addToQueue(sender)
-    elseif addon.db.autoLeave and text == addon.db.autoLeaveMsg then
+    elseif FIS.db.autoLeave and text == FIS.db.autoLeaveMsg then
         self:removeFromQueue(sender)
     end
 end
 
-function Core:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _, guid, presenceID)
+function FIS:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _, guid, presenceID)
     self:debug("Received Battle.net whisper '%s' from %s(%s), presenceID = %s", text, playerName, guid, presenceID)
-    if not addon.db.enable or not addon.db.autoInviteBN or text ~= addon.db.autoInviteBNMsg then return end
+    if not FIS.db.enable or not FIS.db.autoInviteBN or text ~= FIS.db.autoInviteBNMsg then return end
 
     local gameAccountInfo = C_BattleNet.GetGameAccountInfoByGUID(guid)
     local characterName, realmName = gameAccountInfo.characterName, gameAccountInfo.realmName
@@ -325,20 +325,20 @@ function Core:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _
     if characterName and characterName ~= '' and realmName and realmName ~= '' then
         self:addToQueue(characterName .. '-' .. realmName)
     else
-        self:sendMessage(addon.db.fetchErrorMsg, 'BNWHISPER', presenceID)
+        self:sendMessage(FIS.db.fetchErrorMsg, 'BNWHISPER', presenceID)
     end
 end
 
-function Core:GROUP_ROSTER_UPDATE()
-    if not addon.db.enable or addon.db.inviteOnly or not addon.db.autoQueue then return end
-    
+function FIS:GROUP_ROSTER_UPDATE()
+    if not FIS.db.enable or FIS.db.inviteOnly or not FIS.db.autoQueue then return end
+
     if self.status == 2 then
         if IsInGroup() then
             if GetNumGroupMembers() > 1 then
                 -- accepted
                 self:debug("Player accepted invition")
                 self.invitedTime = time()
-                self:sendMessage(addon.db.welcomeMsg, 'PARTY')
+                self:sendMessage(FIS.db.welcomeMsg, 'PARTY')
                 self.status = 3
             end
             -- still waiting
@@ -356,9 +356,9 @@ function Core:GROUP_ROSTER_UPDATE()
     end
 end
 
-function Core:CHAT_MSG_PARTY(_, text, playerName)
+function FIS:CHAT_MSG_PARTY(_, text, playerName)
     self:debug("Received party message '%s' from %s", text, playerName)
-    if not addon.db.enable or addon.db.inviteOnly or not addon.db.autoQueue then return end
+    if not FIS.db.enable or FIS.db.inviteOnly or not FIS.db.autoQueue then return end
 
     local RaidDifficulty = GetRaidDifficultyID()
     local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()

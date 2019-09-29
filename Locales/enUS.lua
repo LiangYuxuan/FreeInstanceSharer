@@ -1,5 +1,4 @@
-local addon = select(2, ...)
-local L = {}
+local FIS, L = unpack(select(2, ...))
 
 L["Auto Entering Queue"] = "Auto Entering Queue"
 L["Auto Extend Saved Instance"] = "Auto Extend Saved Instance"
@@ -34,11 +33,3 @@ L["Welcome Message"] = "Welcome Message"
 L["You can insert following words into the text field, and it will be replace by corresponding variables."] = "You can insert following words into the text field, and it will be replace by corresponding variables."
 L["You have MTIME second(s) to enter instance. Difficulty set to 25 players normal in default. Send '10' in party to set to 10 players, 'H' to set to Heroic."] = "You have MTIME second(s) to enter instance. Difficulty set to 25 players normal in default. Send '10' in party to set to 10 players, 'H' to set to Heroic."
 L["You're queued, and your postion is QCURR."] = "You're queued, and your postion is QCURR."
-
--- Make missing translations available
-addon.L = setmetatable(L, {
-    __index = function(self, key)
-        self[key] = (key or "")
-        return key
-    end
-})

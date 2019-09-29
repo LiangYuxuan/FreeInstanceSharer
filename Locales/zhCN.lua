@@ -1,7 +1,6 @@
-local addon = select(2, ...)
-local L = addon.L
-
 if GetLocale() ~= "zhCN" then return end
+
+local FIS, L = unpack(select(2, ...))
 
 L["Auto Entering Queue"] = "自动进入队列"
 L["Auto Extend Saved Instance"] = "自动延长副本锁定"

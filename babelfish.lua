@@ -8,7 +8,8 @@ local filePrefix = ""
 -- find . -name "*.lua" | grep -v Localization-
 local fileList = {
     FreeInstanceSharer_Main = {
-        "FreeInstanceSharer.lua",
+        "Init.lua",
+        "Core.lua",
         "Config.lua",
     },
 }
