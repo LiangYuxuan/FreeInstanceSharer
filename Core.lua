@@ -28,6 +28,8 @@ local SetSavedInstanceExtend = SetSavedInstanceExtend
 local UnitPosition = UnitPosition
 
 local StaticPopup_Visible = StaticPopup_Visible
+local StaticPopup_Hide = StaticPopup_Hide
+local StaticPopupSpecial_Hide = StaticPopupSpecial_Hide
 
 local DIFFICULTY_PRIMARYRAID_HEROIC = DIFFICULTY_PRIMARYRAID_HEROIC
 local DIFFICULTY_PRIMARYRAID_NORMAL = DIFFICULTY_PRIMARYRAID_NORMAL

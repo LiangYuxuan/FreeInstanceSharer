@@ -43,6 +43,8 @@ globals = {
 	"InterfaceOptionsFrame_OpenToCategory",
 	"SecureButton_GetModifiedUnit",
 	"StaticPopup_Show",
+	"StaticPopup_Hide",
+	"StaticPopupSpecial_Hide",
 	"StaticPopupDialogs",
 	"STATICPOPUP_NUMDIALOGS",
 	"SlashCmdList",
