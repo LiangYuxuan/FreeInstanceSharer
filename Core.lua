@@ -272,7 +272,7 @@ function F:UPDATE_INSTANCE_INFO()
 end
 
 function F:PARTY_INVITE_REQUEST(_, name)
-    self:Debug('Rejected invitation from %s', name)
+    self:Debug("Rejected invitation from %s", name)
 
     StaticPopup_Hide('PARTY_INVITE');
     StaticPopupSpecial_Hide(_G.LFGInvitePopup);
@@ -359,7 +359,7 @@ function F:FetchUpdate()
         -- check max waiting time
         local elapsed = time() - self.invitedTime
         if elapsed >= self.db.MaxWaitingTime then
-            self:Debug('Leaving party: Max waiting time exceeded')
+            self:Debug("Leaving party: Max waiting time exceeded")
             self:Leave()
             return
         end
@@ -368,7 +368,7 @@ function F:FetchUpdate()
         if self.db.AutoLeave then
             local instanceID = select(4, UnitPosition('party1'))
             if instanceID and autoLeaveInstanceMapID[instanceID] then
-                self:Debug('Leaving party: Player entered instance')
+                self:Debug("Leaving party: Player entered instance")
                 self:Leave()
                 return
             end
