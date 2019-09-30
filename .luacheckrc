@@ -12,8 +12,8 @@ ignore = {
 	"113/LE_.*", -- Accessing an undefined (Lua ENUM type) global variable
 	"113/NUM_LE_.*", -- Accessing an undefined (Lua ENUM type) global variable
 	-- "211", -- Unused local variable
-	"211/L", -- Unused local variable "CL"
-	"211/CL", -- Unused local variable "CL"
+	"211/F", -- Unused local variable "F"
+	"211/L", -- Unused local variable "L"
 	"212", -- Unused argument
 	-- "213", -- Unused loop variable
 	-- "231", -- Set but never accessed
@@ -270,6 +270,7 @@ globals = {
 	"C_AuthChallenge.OnTabPressed",
 	"C_AuthChallenge.SetFrame",
 	"C_AuthChallenge.Submit",
+	"C_BattleNet",
 	"C_BlackMarket",
 	"C_BlackMarket.Close",
 	"C_BlackMarket.GetHotItem",
@@ -727,6 +728,7 @@ globals = {
 	"C_NewItems.ClearAll",
 	"C_NewItems.IsNewItem",
 	"C_NewItems.RemoveNewItem",
+	"C_PartyInfo",
 	"C_PetBattles",
 	"C_PetBattles.AcceptPVPDuel",
 	"C_PetBattles.AcceptQueuedPVPMatch",
