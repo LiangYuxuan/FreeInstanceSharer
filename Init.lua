@@ -1,5 +1,5 @@
 local addon, Engine = ...
-local F = LibStub('AceAddon-3.0'):NewAddon(addon, 'AceEvent-3.0', 'AceTimer-3.0')
+local F = LibStub('AceAddon-3.0'):NewAddon(addon, 'AceEvent-3.0', 'AceTimer-3.0', 'AceBucket-3.0')
 
 -- Lua functions
 local _G = _G
