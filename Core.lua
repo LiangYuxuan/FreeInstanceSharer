@@ -217,8 +217,7 @@ function F:Toggle()
 
     if self.db.Enable then
         self:RegisterEvent('UPDATE_INSTANCE_INFO')
-        -- TODO: Disable Direct Invite
-        -- TODO: Allow Suggest Invite
+        self:RegisterEvent('PARTY_INVITE_REQUEST')
 
         if self.db.StopDC then
             self:RegisterEvent('PLAYER_CAMPING')
@@ -270,6 +269,11 @@ function F:UPDATE_INSTANCE_INFO()
     end
 end
 
+function F:PARTY_INVITE_REQUEST()
+    StaticPopup_Hide('PARTY_INVITE');
+    StaticPopupSpecial_Hide(_G.LFGInvitePopup);
+end
+
 function F:PLAYER_CAMPING()
     local Popup = StaticPopup_Visible('CAMP')
     _G[Popup .. 'Button1']:Click()
@@ -304,6 +308,8 @@ end
 -- player in party, STATUS_INVITING -> STATUS_INVITED
 function F:ConfirmInvite()
     self:RegisterEvent('CHAT_MSG_PARTY')
+    -- TODO: Allow Suggest Invite
+    -- self:RegisterEvent('GROUP_INVITE_CONFIRMATION')
 
     self.status = STATUS_INVITED
     self.invitedTime = time()
