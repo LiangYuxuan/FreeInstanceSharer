@@ -73,7 +73,7 @@ local defaultConfig = {
     ["FetchErrorMsg"] = L["Fail to fetch your character infomation from Battle.net, please try to whisper NAME in game."], -- Message when fail to fetch character from Battle.net
     ["QueryQueueMsg"] = L["You're queued, and your postion is QCURR."], -- Message when quering the positon in queue
     ["LeaveQueueMsg"] = ERR_LFG_LEFT_QUEUE, -- Message when leaving queue
-    ["WelcomeMsg"] = L["You have MTIME second(s) to enter instance. Difficulty set to 25 players normal in default. Send '10' in party to set to 10 players, 'H' to set to Heroic."], -- Welcome message when player accepted invition
+    ["WelcomeMsg"] = L["You have MTIME second(s) to enter instance. Difficulty set to 25 players normal in default. Send '10' in party to set to 10 players, 'H' to set to Heroic."], -- Welcome message when player accepted invitation
     ["LeaveMsg"] = L["You're promoted to team leader. If you're in Icecrown Citadel, you need to set to Heroic by yourself."], -- Message before leaving party
 }
 
@@ -271,7 +271,9 @@ function F:UPDATE_INSTANCE_INFO()
     end
 end
 
-function F:PARTY_INVITE_REQUEST()
+function F:PARTY_INVITE_REQUEST(_, name)
+    self:Debug('Rejected invitation from %s', name)
+
     StaticPopup_Hide('PARTY_INVITE');
     StaticPopupSpecial_Hide(_G.LFGInvitePopup);
 end
