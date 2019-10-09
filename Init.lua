@@ -22,6 +22,7 @@ _G[addon] = Engine
 
 F.addonPrefix = "\124cFF70B8FF" .. addon .. "\124r: "
 F.playerFullName = UnitName('player') .. '-' .. GetRealmName()
+F.playerGUID = UnitGUID('player')
 
 function F:Print(...)
     _G.DEFAULT_CHAT_FRAME:AddMessage(self.addonPrefix .. format(...))

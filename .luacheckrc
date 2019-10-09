@@ -76,6 +76,7 @@ globals = {
 	"ChatFontNormal",
 
 	-- ENUMS
+	"Enum",
 	"UPPER_RIGHT_VERTEX",
 	"UPPER_LEFT_VERTEX",
 	"LOWER_RIGHT_VERTEX",
@@ -1965,6 +1966,7 @@ globals = {
 	"GetInventoryItemTexture",
 	"GetInventoryItemsForSlot",
 	"GetInventorySlotInfo",
+	"GetInviteConfirmationInfo",
 	"GetItemChildInfo",
 	"GetItemClassInfo",
 	"GetItemCooldown",

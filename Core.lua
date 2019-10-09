@@ -10,6 +10,8 @@ local BNSendWhisper = BNSendWhisper
 local C_BattleNet_GetGameAccountInfoByGUID = C_BattleNet.GetGameAccountInfoByGUID
 local C_PartyInfo_ConfirmInviteUnit = C_PartyInfo.ConfirmInviteUnit
 local C_PartyInfo_ConfirmLeaveParty = C_PartyInfo.ConfirmLeaveParty
+local C_PartyInfo_GetInviteReferralInfo = C_PartyInfo.GetInviteReferralInfo
+local GetInviteConfirmationInfo = GetInviteConfirmationInfo
 local GetLegacyRaidDifficultyID = GetLegacyRaidDifficultyID
 local GetNumGroupMembers = GetNumGroupMembers
 local GetNumSavedInstances = GetNumSavedInstances
@@ -31,6 +33,9 @@ local StaticPopup_Visible = StaticPopup_Visible
 local StaticPopup_Hide = StaticPopup_Hide
 local StaticPopupSpecial_Hide = StaticPopupSpecial_Hide
 
+local Enum_PartyRequestJoinRelation_Friend = Enum.PartyRequestJoinRelation.Friend
+local Enum_PartyRequestJoinRelation_Guild = Enum.PartyRequestJoinRelation.Guild
+
 local DIFFICULTY_PRIMARYRAID_HEROIC = DIFFICULTY_PRIMARYRAID_HEROIC
 local DIFFICULTY_PRIMARYRAID_NORMAL = DIFFICULTY_PRIMARYRAID_NORMAL
 local DIFFICULTY_RAID10_HEROIC = DIFFICULTY_RAID10_HEROIC
@@ -39,12 +44,15 @@ local DIFFICULTY_RAID25_HEROIC = DIFFICULTY_RAID25_HEROIC
 local DIFFICULTY_RAID25_NORMAL = DIFFICULTY_RAID25_NORMAL
 local FONT_COLOR_CODE_CLOSE = FONT_COLOR_CODE_CLOSE
 local GREEN_FONT_COLOR_CODE = GREEN_FONT_COLOR_CODE
+local LE_INVITE_CONFIRMATION_REQUEST = LE_INVITE_CONFIRMATION_REQUEST
+local LE_INVITE_CONFIRMATION_SUGGEST = LE_INVITE_CONFIRMATION_SUGGEST
 local LFG_LIST_LOADING = LFG_LIST_LOADING
 local LIGHTYELLOW_FONT_COLOR_CODE = LIGHTYELLOW_FONT_COLOR_CODE
 local RED_FONT_COLOR_CODE = RED_FONT_COLOR_CODE
 local SLASH_STOPWATCH_PARAM_STOP1 = SLASH_STOPWATCH_PARAM_STOP1
 local SOCIAL_SHARE_TEXT = SOCIAL_SHARE_TEXT
 local START = START
+local UNLIMITED = UNLIMITED
 
 -- GLOBALS: FISConfig
 
@@ -157,7 +165,7 @@ function F:SendMessage(text, chatType, channel, currIndex)
 
     text = gsub(text, 'QCURR', currIndex or 0)
     text = gsub(text, 'QLEN', #self.queue)
-    text = gsub(text, 'MTIME', self.db.MaxWaitingTime)
+    text = gsub(text, 'MTIME', self.db.MaxWaitingTime == 0 and UNLIMITED or self.db.MaxWaitingTime)
     text = gsub(text, 'NAME', self.playerFullName)
 
     if chatType == 'BNWHISPER' then
@@ -249,7 +257,7 @@ function F:UPDATE_INSTANCE_INFO()
             local _, _, _, difficulty, _, extended = GetSavedInstanceInfo(i)
             -- Thanks to SavedInstances
             local link = GetSavedInstanceChatLink(i)
-            local instanceID, bossList = link:match(':(%d+):%d+:(%d+)\124h');
+            local instanceID, bossList = link:match(':(%d+):%d+:(%d+)\124h')
             instanceID = tonumber(instanceID)
             bossList = tonumber(bossList)
             if not extended and autoLeaveInstanceMapID[instanceID] then
@@ -274,21 +282,21 @@ end
 function F:PARTY_INVITE_REQUEST(_, name)
     self:Debug("Rejected invitation from %s", name)
 
-    StaticPopup_Hide('PARTY_INVITE');
-    StaticPopupSpecial_Hide(_G.LFGInvitePopup);
+    StaticPopup_Hide('PARTY_INVITE')
+    StaticPopupSpecial_Hide(_G.LFGInvitePopup)
 end
 
 function F:PLAYER_CAMPING()
-    local Popup = StaticPopup_Visible('CAMP')
-    _G[Popup .. 'Button1']:Click()
+    local dialogName = StaticPopup_Visible('CAMP')
+    _G[dialogName .. 'Button1']:Click()
 end
 
 --[[
 ##########################################################################
+###    Invite       ConfirmInvite         Leave            Release     ###
 ### STATUS_IDLE -> STATUS_INVITING -> STATUS_INVITED -> STATUS_LEAVING ###
 ###       ^              | rejected         | user left       |        ###
 ###       |----------------------------------------------------        ###
-###    Invite       ConfirmInvite         Leave            Release     ###
 ##########################################################################
 ]]--
 
@@ -312,8 +320,7 @@ end
 -- player in party, STATUS_INVITING -> STATUS_INVITED
 function F:ConfirmInvite()
     self:RegisterEvent('CHAT_MSG_PARTY')
-    -- TODO: Allow Suggest Invite
-    -- self:RegisterEvent('GROUP_INVITE_CONFIRMATION')
+    self:RegisterEvent('GROUP_INVITE_CONFIRMATION')
 
     self.status = STATUS_INVITED
     self.invitedTime = time()
@@ -335,6 +342,7 @@ end
 function F:Release()
     self:UnregisterEvent('GROUP_ROSTER_UPDATE')
     self:UnregisterEvent('CHAT_MSG_PARTY')
+    self:UnregisterEvent('GROUP_INVITE_CONFIRMATION')
     self:UnregisterEvent('CHAT_MSG_PARTY_LEADER')
 
     if IsInGroup() then
@@ -358,7 +366,7 @@ function F:FetchUpdate()
     elseif self.status == STATUS_INVITED then
         -- check max waiting time
         local elapsed = time() - self.invitedTime
-        if elapsed >= self.db.MaxWaitingTime then
+        if self.db.MaxWaitingTime ~= 0 and elapsed >= self.db.MaxWaitingTime then
             self:Debug("Leaving party: Max waiting time exceeded")
             self:Leave()
             return
@@ -469,6 +477,9 @@ end
 function F:CHAT_MSG_PARTY(_, text, playerName)
     self:Debug("Received party message '%s' from %s", text, playerName)
 
+    -- TODO: allow from 10 to 25, Heroic to Normal
+    -- TODO: allow manual leave
+
     local RaidDifficulty = GetRaidDifficultyID()
     local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
     local isTenPlayer = LegacyRaidDifficulty == DIFFICULTY_RAID10_NORMAL or LegacyRaidDifficulty == DIFFICULTY_RAID10_HEROIC
@@ -485,4 +496,37 @@ function F:CHAT_MSG_PARTY(_, text, playerName)
 
     SetRaidDifficultyID(RaidDifficulty)
     SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
+end
+
+function F:GROUP_INVITE_CONFIRMATION()
+    local dialogName, dialog = StaticPopup_Visible('GROUP_INVITE_CONFIRMATION')
+    if not dialogName then return end
+
+    local invite = dialog.data
+    local confirmationType, name = GetInviteConfirmationInfo(invite)
+    local suggesterGuid, suggesterName, relationship = C_PartyInfo_GetInviteReferralInfo(invite)
+
+    self:Debug("Received invite %s to %s from %s with relation %d",
+        confirmationType == LE_INVITE_CONFIRMATION_REQUEST and "REQUEST" or
+        (confirmationType == LE_INVITE_CONFIRMATION_SUGGEST and "SUGGEST" or "UNKNOWN")
+        , name, suggesterName, relationship)
+
+    if confirmationType == LE_INVITE_CONFIRMATION_REQUEST then
+        if not suggesterGuid or suggesterGuid == F.playerGUID or (
+            relationship ~= Enum_PartyRequestJoinRelation_Friend and
+            relationship ~= Enum_PartyRequestJoinRelation_Guild
+        ) then
+            -- we only allow invite request from friend and guild
+            -- reject
+            _G[dialogName .. 'Button2']:Click()
+            return
+        end
+    elseif confirmationType ~= LE_INVITE_CONFIRMATION_SUGGEST then
+        -- not request and not suggest
+        -- reject
+        _G[dialogName .. 'Button2']:Click()
+        return
+    end
+
+    _G[dialogName .. 'Button1']:Click()
 end
