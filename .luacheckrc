@@ -3146,6 +3146,7 @@ globals = {
 	"ResistancePercent",
 	"RespondInstanceLock",
 	"RespondMailLockSendItem",
+	"RespondToInviteConfirmation",
 	"RestartGx",
 	"RestoreRaidProfileFromCopy",
 	"ResurrectGetOfferer",
