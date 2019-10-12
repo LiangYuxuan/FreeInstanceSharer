@@ -2,8 +2,8 @@ local F, L = unpack(select(2, ...))
 
 -- Lua functions
 local _G = _G
-local gsub, ipairs, pairs, select, strfind, time = gsub, ipairs, pairs, select, strfind, time
-local tinsert, tonumber, tremove, type = tinsert, tonumber, tremove, type
+local gsub, ipairs, pairs, select, strfind, strlower = gsub, ipairs, pairs, select, strfind, strlower
+local time, tinsert, tonumber, tremove, type = time, tinsert, tonumber, tremove, type
 
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
@@ -22,6 +22,7 @@ local IsInGroup = IsInGroup
 local PromoteToLeader = PromoteToLeader
 local RequestRaidInfo = RequestRaidInfo
 local ResetInstances = ResetInstances
+local RespondToInviteConfirmation = RespondToInviteConfirmation
 local SendChatMessage = SendChatMessage
 local SetDungeonDifficultyID = SetDungeonDifficultyID
 local SetLegacyRaidDifficultyID = SetLegacyRaidDifficultyID
@@ -63,7 +64,7 @@ local STATUS_INVITED  = 3
 local STATUS_LEAVING  = 4
 
 local defaultConfig = {
-    ["DBVer"] = 1, -- Database Version
+    ["DBVer"] = 2, -- Database Version
     ["Enable"] = false, -- Enable
     ["StopDC"] = false, -- Stop disconnecting
     ["Debug"] = false, -- Debug mode
@@ -75,35 +76,43 @@ local defaultConfig = {
     ["AutoQueue"] = true, -- Queue when more than one player try to get invited
     ["LeaveQueueOnWhisper"] = true, -- Leave queue when received preset whisper message
     ["LeaveQueueOnWhisperMsg"] = "233", -- Preset whisper message
-    ["MaxWaitingTime"] = 30, -- Max time to wait players to enter instances
+    ["TimeLimit"] = 30, -- Max time to wait for players to enter instances
     ["AutoLeave"] = true, -- Auto leave party when players are in instances
-    ["EnterQueueMsg"] = L["You're queued, and your postion is QCURR."], -- Message when entering queue
-    ["FetchErrorMsg"] = L["Fail to fetch your character infomation from Battle.net, please try to whisper NAME in game."], -- Message when fail to fetch character from Battle.net
-    ["QueryQueueMsg"] = L["You're queued, and your postion is QCURR."], -- Message when quering the positon in queue
+    ["EnterQueueMsg"] = L["You're queued. Position in queue: QCURR."], -- Message when entering queue
+    ["QueryQueueMsg"] = L["You're queued. Position in queue: QCURR."], -- Message when quering the positon in queue
     ["LeaveQueueMsg"] = ERR_LFG_LEFT_QUEUE, -- Message when leaving queue
-    ["WelcomeMsg"] = L["You have MTIME second(s) to enter instance. Difficulty set to 25 players normal in default. Send '10' in party to set to 10 players, 'H' to set to Heroic."], -- Welcome message when player accepted invitation
-    ["LeaveMsg"] = L["You're promoted to team leader. If you're in Icecrown Citadel, you need to set to Heroic by yourself."], -- Message before leaving party
+    ["FetchErrorMsg"] = L["Failed to fetch your character information from Battle.net, please PM NAME."], -- Message when fail to fetch character name and realm from Battle.net
+    ["WelcomeMsg"] = L["MTIME second(s) to enter instance. Difficulty set to 25 players normal. Send '10/25/N/H' in party to change, 'leave' to leave."], -- Welcome message when player accepted invitation
+    ["TLELeaveMsg"] = L["Time Limit Exceeded. You're promoted to team leader."], -- Message before leaving party due to time limit exceeded
+    ["AutoLeaveMsg"] = L["You're promoted to team leader. Good luck!"], -- Message before leaving party due to player entered instance
+    ["AutoLeaveMsg631"] = L["You're promoted to team leader. Please set difficulty to Heroic. Good luck!"], -- Alt message before leaving party due to player entered Icecrown Citadel
 }
 
 local oldVerDBMap = {
-    ["debug"] = "Debug",
-    ["enable"] = "Enable",
-    ["preventAFK"] = "StopDC",
-    ["autoExtend"] = "AutoExtend",
-    ["autoInvite"] = "InviteOnWhisper",
-    ["autoInviteMsg"] = "InviteOnWhisperMsg",
-    ["autoInviteBN"] = "InviteOnBNWhisper",
-    ["autoInviteBNMsg"] = "InviteOnBNWhisperMsg",
-    ["autoLeave"] = "LeaveQueueOnWhisper",
-    ["autoLeaveMsg"] = "LeaveQueueOnWhisperMsg",
-    ["autoQueue"] = "AutoQueue",
-    ["maxWaitingTime"] = "MaxWaitingTime",
-    ["enterQueueMsg"] = "EnterQueueMsg",
-    ["fetchErrorMsg"] = "FetchErrorMsg",
-    ["queryQueueMsg"] = "QueryQueueMsg",
-    ["leaveQueueMsg"] = "LeaveQueueMsg",
-    ["welcomeMsg"] = "WelcomeMsg",
-    ["leaveMsg"] = "LeaveMsg",
+    { -- from nil to 1
+        ["debug"] = "Debug",
+        ["enable"] = "Enable",
+        ["preventAFK"] = "StopDC",
+        ["autoExtend"] = "AutoExtend",
+        ["autoInvite"] = "InviteOnWhisper",
+        ["autoInviteMsg"] = "InviteOnWhisperMsg",
+        ["autoInviteBN"] = "InviteOnBNWhisper",
+        ["autoInviteBNMsg"] = "InviteOnBNWhisperMsg",
+        ["autoLeave"] = "LeaveQueueOnWhisper",
+        ["autoLeaveMsg"] = "LeaveQueueOnWhisperMsg",
+        ["autoQueue"] = "AutoQueue",
+        ["maxWaitingTime"] = "TimeLimit",
+        ["enterQueueMsg"] = "EnterQueueMsg",
+        ["fetchErrorMsg"] = "FetchErrorMsg",
+        ["queryQueueMsg"] = "QueryQueueMsg",
+        ["leaveQueueMsg"] = "LeaveQueueMsg",
+        ["welcomeMsg"] = "WelcomeMsg",
+        ["leaveMsg"] = "AutoLeaveMsg",
+    },
+    { -- from 1 to 2
+        ["MaxWaitingTime"] = "TimeLimit",
+        ["LeaveMsg"] = "AutoLeaveMsg"
+    },
 }
 
 local autoLeaveInstanceMapID = {
@@ -165,7 +174,7 @@ function F:SendMessage(text, chatType, channel, currIndex)
 
     text = gsub(text, 'QCURR', currIndex or 0)
     text = gsub(text, 'QLEN', #self.queue)
-    text = gsub(text, 'MTIME', self.db.MaxWaitingTime == 0 and UNLIMITED or self.db.MaxWaitingTime)
+    text = gsub(text, 'MTIME', self.db.TimeLimit == 0 and UNLIMITED or self.db.TimeLimit)
     text = gsub(text, 'NAME', self.playerFullName)
 
     if chatType == 'BNWHISPER' then
@@ -183,10 +192,17 @@ function F:OnInitialize()
         if not FISConfig.DBVer then
             -- old database before v8.2.5
             local backup = FISConfig
-            for key, value in pairs(oldVerDBMap) do
+            for key, value in pairs(oldVerDBMap[1]) do
+                FISConfig[value] = backup[key]
+            end
+        elseif FISConfig.DBVer == 1 then
+            -- old database before v8.2.6
+            local backup = FISConfig
+            for key, value in pairs(oldVerDBMap[2]) do
                 FISConfig[value] = backup[key]
             end
         end
+        FISConfig.DBVer = 2
         -- handle deprecated
         for key in pairs(FISConfig) do
             if type(defaultConfig[key]) == 'nil' then
@@ -288,7 +304,9 @@ end
 
 function F:PLAYER_CAMPING()
     local dialogName = StaticPopup_Visible('CAMP')
-    _G[dialogName .. 'Button1']:Click()
+    if dialogName then
+        StaticPopup_Hide('CAMP')
+    end
 end
 
 --[[
@@ -329,13 +347,13 @@ function F:ConfirmInvite()
 end
 
 -- pending to leave, STATUS_INVITED -> STATUS_LEAVING
-function F:Leave()
+function F:Leave(leaveMsg)
     self:UnregisterEvent('GROUP_ROSTER_UPDATE')
     self:UnregisterEvent('CHAT_MSG_PARTY')
     self:RegisterEvent('CHAT_MSG_PARTY_LEADER', 'Release')
     self.status = STATUS_LEAVING
 
-    self:SendMessage(self.db.LeaveMsg, 'PARTY')
+    self:SendMessage(leaveMsg, 'PARTY')
 end
 
 -- release current user, STATUS_LEAVING -> STATUS_IDLE
@@ -366,9 +384,9 @@ function F:FetchUpdate()
     elseif self.status == STATUS_INVITED then
         -- check max waiting time
         local elapsed = time() - self.invitedTime
-        if self.db.MaxWaitingTime ~= 0 and elapsed >= self.db.MaxWaitingTime then
-            self:Debug("Leaving party: Max waiting time exceeded")
-            self:Leave()
+        if self.db.TimeLimit ~= 0 and elapsed >= self.db.TimeLimit then
+            self:Debug("Leaving party: Time Limit Exceeded")
+            self:Leave(self.db.TLELeaveMsg)
             return
         end
 
@@ -376,8 +394,8 @@ function F:FetchUpdate()
         if self.db.AutoLeave then
             local instanceID = select(4, UnitPosition('party1'))
             if instanceID and autoLeaveInstanceMapID[instanceID] then
-                self:Debug("Leaving party: Player entered instance")
-                self:Leave()
+                self:Debug("Leaving party: Player entered instance %d", instanceID)
+                self:Leave(self.db['AutoLeaveMsg' .. instanceID] or self.db.AutoLeaveMsg)
                 return
             end
         end
@@ -477,16 +495,18 @@ end
 function F:CHAT_MSG_PARTY(_, text, playerName)
     self:Debug("Received party message '%s' from %s", text, playerName)
 
-    -- TODO: allow from 10 to 25, Heroic to Normal
-    -- TODO: allow manual leave
-
     local RaidDifficulty = GetRaidDifficultyID()
     local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
     local isTenPlayer = LegacyRaidDifficulty == DIFFICULTY_RAID10_NORMAL or LegacyRaidDifficulty == DIFFICULTY_RAID10_HEROIC
     local isHeroic = RaidDifficulty == DIFFICULTY_PRIMARYRAID_HEROIC
 
-    isTenPlayer = strfind(text, '10')
-    isHeroic = strfind(text, 'H') or strfind(text, 'h')
+    text = strlower(text)
+    if strfind(text, 'leave') then
+        return F:Leave(self.db.AutoLeaveMsg)
+    end
+
+    isTenPlayer = strfind(text, '10') and not strfind(text, '25')
+    isHeroic = strfind(text, 'h') and not strfind(text, 'n')
     RaidDifficulty = isHeroic and DIFFICULTY_PRIMARYRAID_HEROIC or DIFFICULTY_PRIMARYRAID_NORMAL
     LegacyRaidDifficulty = isHeroic and (
         isTenPlayer and DIFFICULTY_RAID10_HEROIC or DIFFICULTY_RAID25_HEROIC
@@ -518,15 +538,16 @@ function F:GROUP_INVITE_CONFIRMATION()
         ) then
             -- we only allow invite request from friend and guild
             -- reject
-            _G[dialogName .. 'Button2']:Click()
+            StaticPopup_Hide('GROUP_INVITE_CONFIRMATION')
             return
         end
     elseif confirmationType ~= LE_INVITE_CONFIRMATION_SUGGEST then
         -- not request and not suggest
         -- reject
-        _G[dialogName .. 'Button2']:Click()
+        StaticPopup_Hide('GROUP_INVITE_CONFIRMATION')
         return
     end
 
-    _G[dialogName .. 'Button1']:Click()
+    RespondToInviteConfirmation(invite, true)
+    StaticPopup_Hide('GROUP_INVITE_CONFIRMATION')
 end

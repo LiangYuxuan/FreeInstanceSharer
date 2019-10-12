@@ -77,9 +77,9 @@ local options = {
                     type = 'toggle',
                     disabled = function() return not F.db.Enable or not F.db.AutoQueue end,
                 },
-                MaxWaitingTime = {
+                TimeLimit = {
                     order = 51,
-                    name = L["Max Waiting Time (s)"],
+                    name = L["Time Limit (s)"],
                     type = 'range',
                     min = 0, max = 120, step = 1,
                     disabled = function() return not F.db.Enable or not F.db.AutoQueue end,
@@ -150,9 +150,23 @@ local options = {
                     width = "full",
                     multiline = true,
                 },
-                LeaveMsg = {
+                TLELeaveMsg = {
                     order = 22,
-                    name = L["Message Before Leaving"],
+                    name = L["Message Before Leaving due to Time Limit Exceeded"],
+                    type = 'input',
+                    width = "full",
+                    multiline = true,
+                },
+                AutoLeaveMsg = {
+                    order = 23,
+                    name = L["Message Before Leaving due to player entered instance"],
+                    type = 'input',
+                    width = "full",
+                    multiline = true,
+                },
+                AutoLeaveMsg631 = {
+                    order = 24,
+                    name = format(L["Alt Message Before Leaving due to player entered %s"], DUNGEON_FLOOR_ICECROWNCITADELDEATHKNIGHT3),
                     type = 'input',
                     width = "full",
                     multiline = true,
@@ -162,7 +176,7 @@ local options = {
                     name = L["You can insert following words into the text field, and it will be replace by corresponding variables."] .. "\n" ..
                     L["QCURR - The position of the player in queue."] .. "\n" ..
                     L["QLEN - The length of the queue."] .. "\n" ..
-                    L["MTIME - Max time to wait players to enter instances."] .. "\n" ..
+                    L["MTIME - Time Limit to wait players to enter instance."] .. "\n" ..
                     L["NAME - The name and realm of current character."],
                     type = 'description',
                 },
