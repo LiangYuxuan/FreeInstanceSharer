@@ -1,0 +1,26 @@
+name: pull-request-build
+
+on: [pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: LiangYuxuan/action-luacheck@master
+      with:
+        args: '--no-color -q'
+
+    - name: Create Retail Package
+      run: curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh | bash -s -- -d -z
+      env:
+        CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        GITHUB_OAUTH: ${{ secrets.GITHUB_OAUTH }}
+
+    - uses: actions/upload-artifact@master
+      with:
+        name: pull-request-${{ github.head_ref }}
+        path: .release/

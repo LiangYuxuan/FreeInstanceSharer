@@ -17,6 +17,9 @@ indent_style = tab
 [{.mailmap,.env,*.sh}]
 end_of_line = lf
 
+[*.yml]
+indent_size = 2
+
 [{*.pkgmeta,*.pkgmeta-classic}]
 indent_style = space
 indent_size = 2

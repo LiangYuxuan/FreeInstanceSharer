@@ -1,0 +1,28 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: LiangYuxuan/action-luacheck@master
+      with:
+        args: '--no-color -q'
+
+    - uses: LiangYuxuan/action-wowace-localization-import@master
+      env:
+        CF_API_KEY: ${{ secrets.CF_API_KEY }}
+
+    - name: Create Retail Package
+      run: curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh | bash
+      env:
+        CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        GITHUB_OAUTH: ${{ secrets.GITHUB_OAUTH }}

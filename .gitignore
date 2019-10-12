@@ -3,5 +3,3 @@
 
 Libs/*
 !Libs/load_libs.xml
-
-FreeInstanceSharer_Main.lua

@@ -1,10 +1,8 @@
 std = "lua51"
 max_line_length = false
 exclude_files = {
-	"babelfish.lua",
-	"FreeInstanceSharer_Main.lua",
 	"Libs/",
-	".luacheckrc"
+	"babelfish_config.lua",
 }
 ignore = {
 	"11./SLASH_.*", -- Setting an undefined (Slash handler) global variable
