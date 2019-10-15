@@ -472,9 +472,9 @@ function F:CHAT_MSG_WHISPER(_, text, sender)
 end
 
 function F:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _, guid, presenceID)
-    self:Debug("Received Battle.net whisper '%s' from %s(%s), presenceID = %s", text, playerName, guid, presenceID)
+    self:Debug("Received Battle.net whisper '%s' from %s(%s), presenceID = %s", text, playerName, guid or '', presenceID)
 
-    if text ~= self.db.InviteOnBNWhisperMsg then return end
+    if not guid or text ~= self.db.InviteOnBNWhisperMsg then return end
 
     local gameAccountInfo = C_BattleNet_GetGameAccountInfoByGUID(guid)
     local characterName, realmName = gameAccountInfo.characterName, gameAccountInfo.realmName
