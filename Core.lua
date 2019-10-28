@@ -2,8 +2,8 @@ local F, L = unpack(select(2, ...))
 
 -- Lua functions
 local _G = _G
-local gsub, ipairs, pairs, select, strfind, strlower = gsub, ipairs, pairs, select, strfind, strlower
-local time, tinsert, tonumber, tremove, type = time, tinsert, tonumber, tremove, type
+local bit_band, bit_bor, gsub, ipairs, pairs, select, strfind = bit.band, bit.bor, gsub, ipairs, pairs, select, strfind
+local strlower, time, tinsert, tonumber, tremove, type = strlower, time, tinsert, tonumber, tremove, type
 
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
@@ -30,6 +30,7 @@ local SetRaidDifficultyID = SetRaidDifficultyID
 local SetSavedInstanceExtend = SetSavedInstanceExtend
 local UnitPosition = UnitPosition
 
+local tContains = tContains
 local StaticPopup_Visible = StaticPopup_Visible
 local StaticPopup_Hide = StaticPopup_Hide
 local StaticPopupSpecial_Hide = StaticPopupSpecial_Hide
@@ -115,44 +116,97 @@ local oldVerDBMap = {
     },
 }
 
-local autoLeaveInstanceMapID = {
+local supportedInstances = {
     -- Raid
     -- Vanilla
-    [531] = {14}, -- Temple of Ahn'Qiraj
+    [531] = { -- Temple of Ahn'Qiraj
+        [ACHIEVEMENTFRAME_FILTER_ALL .. ' ' .. BOSS_DEAD] = { low = 479, high = 511, diff = {14} }, -- ALL KILLED
+    },
     -- The Burning Crusade
-    [564] = {14}, -- Black Temple
+    [564] = { -- Black Temple
+        [9] = { low = 255, high = 255, diff = {14} }, -- Illidan Stormrage
+    },
     -- Wrath of the Lich King
-    [603] = {14}, -- Ulduar
-    [631] = {3, 4, 5, 6}, -- Icecrown Citadel
+    [603] = { -- Ulduar
+        [16] = { low = 3518, high = 122878, diff = {14} }, -- Yogg-Saron
+    },
+    [631] = { -- Icecrown Citadel
+        [12] = { low = 2039, high = 2047, diff = {3, 4, 5, 6} }, -- The Lich King
+    },
     -- Cataclysm
-    [669] = {3, 4, 5, 6}, -- Blackwing Descent
-    [754] = {3, 4, 5, 6}, -- Throne of the Four Winds
-    [720] = {14, 15}, -- Firelands
-    [967] = {3, 4, 5, 6}, -- Dragon Soul
+    [669] = { -- Blackwing Descent
+        [6] = { low = 47, high = 47, diff = {3, 4, 5, 6} }, -- Nefarian and Onyxia
+    },
+    [720] = { -- Firelands
+        [4] = { low = 54, high = 54, diff = {14, 15} }, -- Alysrazor
+        [6] = { low = 118, high = 118, diff = {14, 15} }, -- Majordomo Staghelm
+        [7] = { low = 119, high = 119, diff = {14} }, -- Ragnaros
+    },
+    [754] = { -- Throne of the Four Winds
+        [2] = { low = 2, high = 2, diff = {3, 4, 5, 6} }, -- Al'Akir
+    },
+    [967] = { -- Dragon Soul
+        [5] = { low = 30, high = 30, diff = {3, 4, 5, 6} }, -- Ultraxion
+        [8] = { low = 127, high = 127, diff = {3, 4} }, -- Madness of Deathwing
+    },
     -- Mists of Pandaria
-    [996] = {3, 4, 5, 6}, -- Terrace of Endless Spring
-    [1008] = {3, 4, 5, 6}, -- Mogu'shan Vaults
-    [1098] = {3, 4, 5, 6}, -- Throne of Thunder
-    [1136] = {15}, -- Siege of Orgrimmar
+    [996] = { -- Terrace of Endless Spring
+        [4] = { low = 13, high = 13, diff = {3, 4, 5, 6} }, -- Sha of Fear
+    },
+    [1008] = { -- Mogu'shan Vaults
+        [6] = { low = 27, high = 27, diff = {3, 4, 5, 6} }, -- Elegon
+    },
+    [1098] = { -- Throne of Thunder
+        [2] = { low = 512, high = 512, diff = {3, 4, 5, 6} }, -- Horridon
+        [6] = { low = 1676, high = 1676, diff = {3, 4, 5, 6} }, -- Ji-Kun
+    },
+    [1136] = { -- Siege of Orgrimmar
+        [14] = { low = 23551, high = 23551, diff = {15} }, -- Garrosh Hellscream
+    },
     -- Warlords of Draenor
-    [1205] = {14, 15}, -- Blackrock Foundry
-    [1448] = {14, 15}, -- Hellfire Citadel
+    [1205] = { -- Blackrock Foundry
+        [10] = { low = 767, high = 767, diff = {14, 15} }, -- Blackhand
+    },
+    [1448] = { -- Hellfire Citadel
+        [5] = { low = 530, high = 594, diff = {14, 15} }, -- Kilrogg Deadeye
+    },
     -- Legion
-    [1520] = {15}, -- The Emerald Nightmare
-    [1530] = {14, 15}, -- The Nighthold
-    [1676] = {14, 15}, -- Tomb of Sargeras
-    [1712] = {14, 15}, -- Antorus, the Burning Throne
+    [1520] = { -- The Emerald Nightmare
+        [7] = { low = 119, high = 119, diff = {15} }, -- Xavius
+    },
+    [1530] = { -- The Nighthold
+        [10] = { low = 479, high = 991, diff = {14, 15} }, -- Gul'dan
+    },
+    [1676] = { -- Tomb of Sargeras
+        [5] = { low = 3, high = 51, diff = {14, 15} }, -- Mistress Sassz'ine
+    },
+    [1712] = { -- Antorus, the Burning Throne
+        -- TODO!!!!!
+        [2] = { low = 128, high = 202, diff = {14, 15} }, -- Felhounds of Sargeras
+    },
     -- Battle for Azeroth
-    -- [2070] = {14, 15}, -- Battle of Dazar'alor
+    -- [2070] = { -- Battle of Dazar'alor
+    --     [7] = { low = 863, high = 863, diff = {14, 15} }, -- High Tinker Mekkatorque
+    -- }
 
     -- Dungeon
     -- Legion
-    [1651] = {23}, -- Return to Karazhan
+    [1651] = { -- Return to Karazhan
+        [4] = { low = 2, high = 51, diff = {23} }, -- Attumen the Huntsman
+    },
     -- Battle for Azeroth
-    -- [1754] = {23}, -- Freehold
-    -- [1762] = {23}, -- Kings' Rest
-    -- [1841] = {23}, -- The Underrot
-    -- [2097] = {23}, -- Operation: Mechagon
+    -- [1754] = { -- Freehold
+    --     [4] = { low = 7, high = 7, diff = {23} }, -- Harlan Sweete
+    -- },
+    -- [1762] = { -- Kings' Rest
+    --     [4] = { low = 7, high = 7, diff = {23} }, -- King Dazar
+    -- },
+    -- [1841] = { -- The Underrot
+    --     [4] = { low = 7, high = 7, diff = {23} }, -- Unbound Abomination
+    -- },
+    -- [2097] = { -- Operation: Mechagon
+    --     [4] = { low = 208, high = 208, diff = {23} }, -- HK-8 Aerial Oppression Unit
+    -- },
 }
 
 -- print current status and config to chatframe
@@ -276,10 +330,9 @@ function F:UPDATE_INSTANCE_INFO()
             local instanceID, bossList = link:match(':(%d+):%d+:(%d+)\124h')
             instanceID = tonumber(instanceID)
             bossList = tonumber(bossList)
-            if not extended and autoLeaveInstanceMapID[instanceID] then
-                local difficulties = autoLeaveInstanceMapID[instanceID]
-                for _, curr in pairs(difficulties) do
-                    if difficulty == curr then
+            if not extended and supportedInstances[instanceID] then
+                for _, tbl in pairs(supportedInstances[instanceID]) do
+                    if tContains(tbl.diff, difficulty) and bit_band(bossList, tbl.low) == tbl.low and bit_bor(bossList, tbl.high) == tbl.high then
                         SetSavedInstanceExtend(i, true)
                         break
                     end
@@ -393,7 +446,7 @@ function F:FetchUpdate()
         -- check player place
         if self.db.AutoLeave then
             local instanceID = select(4, UnitPosition('party1'))
-            if instanceID and autoLeaveInstanceMapID[instanceID] then
+            if instanceID and supportedInstances[instanceID] then
                 self:Debug("Leaving party: Player entered instance %d", instanceID)
                 self:Leave(self.db['AutoLeaveMsg' .. instanceID] or self.db.AutoLeaveMsg)
                 return
