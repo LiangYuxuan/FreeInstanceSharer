@@ -7,7 +7,7 @@ local strlower, time, tinsert, tonumber, tremove, type = strlower, time, tinsert
 
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
-local C_BattleNet_GetGameAccountInfoByGUID = C_BattleNet.GetGameAccountInfoByGUID
+local C_BattleNet_GetAccountInfoByID = C_BattleNet.GetAccountInfoByID
 local C_PartyInfo_ConfirmInviteUnit = C_PartyInfo.ConfirmInviteUnit
 local C_PartyInfo_ConfirmLeaveParty = C_PartyInfo.ConfirmLeaveParty
 local C_PartyInfo_GetInviteReferralInfo = C_PartyInfo.GetInviteReferralInfo
@@ -524,12 +524,13 @@ function F:CHAT_MSG_WHISPER(_, text, sender)
     end
 end
 
-function F:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _, guid, presenceID)
-    self:Debug("Received Battle.net whisper '%s' from %s(%s), presenceID = %s", text, playerName, guid or '', presenceID)
+function F:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _, _, presenceID)
+    self:Debug("Received Battle.net whisper '%s' from %s(%s)", text, playerName, presenceID)
 
-    if not guid or text ~= self.db.InviteOnBNWhisperMsg then return end
+    if text ~= self.db.InviteOnBNWhisperMsg then return end
 
-    local gameAccountInfo = C_BattleNet_GetGameAccountInfoByGUID(guid)
+    local accountInfo = C_BattleNet_GetAccountInfoByID(presenceID)
+    local gameAccountInfo = accountInfo.gameAccountInfo
     local characterName, realmName = gameAccountInfo.characterName, gameAccountInfo.realmName
     self:Debug("Received character %s-%s", characterName, realmName)
 
