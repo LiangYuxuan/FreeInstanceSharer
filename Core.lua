@@ -168,7 +168,7 @@ local supportedInstances = {
         [10] = { low = 767, high = 767, diff = {14, 15} }, -- Blackhand
     },
     [1448] = { -- Hellfire Citadel
-        [5] = { low = 530, high = 594, diff = {14, 15} }, -- Kilrogg Deadeye
+        [5] = { low = 1042, high = 1106, diff = {14, 15} }, -- Kilrogg Deadeye
     },
     -- Legion
     [1520] = { -- The Emerald Nightmare
