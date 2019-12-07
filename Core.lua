@@ -181,7 +181,6 @@ local supportedInstances = {
         [5] = { low = 3, high = 51, diff = {14, 15} }, -- Mistress Sassz'ine
     },
     [1712] = { -- Antorus, the Burning Throne
-        -- TODO!!!!!
         [2] = { low = 128, high = 202, diff = {14, 15} }, -- Felhounds of Sargeras
     },
     -- Battle for Azeroth
