@@ -154,7 +154,7 @@ local supportedInstances = {
         [4] = { low = 13, high = 13, diff = {3, 4, 5, 6} }, -- Sha of Fear
     },
     [1008] = { -- Mogu'shan Vaults
-        [6] = { low = 27, high = 27, diff = {3, 4, 5, 6} }, -- Elegon
+        [5] = { low = 27, high = 27, diff = {3, 4, 5, 6} }, -- Elegon
     },
     [1098] = { -- Throne of Thunder
         [2] = { low = 512, high = 512, diff = {3, 4, 5, 6} }, -- Horridon
