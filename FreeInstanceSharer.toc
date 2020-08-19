@@ -1,6 +1,6 @@
 ## Interface: 80300
-## Title: Free Instance Sharer
-## Title-zhCN: 便利CD分享
+## Title: |cff1572cfFree Instance Sharer|r
+## Title-zhCN: |cff1572cf便利CD分享|r
 ## Notes: Simply sharing your saved instance to others.
 ## Notes-zhCN: 提供自动排队、组队、退组等功能，便利地共享副本CD。
 ## Author: @project-author@
