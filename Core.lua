@@ -420,6 +420,12 @@ function F:Leave(leaveMsg)
     self:RegisterEvent('CHAT_MSG_PARTY_LEADER', 'Release')
     self.status = STATUS_LEAVING
 
+    if not IsInGroup() then
+        -- player left
+        self:Debug("Player left")
+        F:Release()
+    end
+
     self:SendMessage(leaveMsg, 'SMART')
 end
 
@@ -484,6 +490,12 @@ function F:GROUP_ROSTER_UPDATE()
             self:Release()
         end
     elseif self.status == STATUS_INVITED then
+        if not IsInGroup() then
+            -- player left
+            self:Debug("Player left")
+            self:Release()
+        end
+    elseif self.status == STATUS_LEAVING then
         if not IsInGroup() then
             -- player left
             self:Debug("Player left")
