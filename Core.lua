@@ -184,9 +184,9 @@ local supportedInstances = {
         [2] = { low = 128, high = 202, diff = {14, 15} }, -- Felhounds of Sargeras
     },
     -- Battle for Azeroth
-    -- [2070] = { -- Battle of Dazar'alor
-    --     [7] = { low = 863, high = 863, diff = {14, 15} }, -- High Tinker Mekkatorque
-    -- }
+    [2070] = { -- Battle of Dazar'alor
+        [7] = { low = 863, high = 863, diff = {14, 15} }, -- High Tinker Mekkatorque
+    },
 
     -- Dungeon
     -- Legion
@@ -194,18 +194,18 @@ local supportedInstances = {
         [4] = { low = 2, high = 51, diff = {23} }, -- Attumen the Huntsman
     },
     -- Battle for Azeroth
-    -- [1754] = { -- Freehold
-    --     [4] = { low = 7, high = 7, diff = {23} }, -- Harlan Sweete
-    -- },
-    -- [1762] = { -- Kings' Rest
-    --     [4] = { low = 7, high = 7, diff = {23} }, -- King Dazar
-    -- },
-    -- [1841] = { -- The Underrot
-    --     [4] = { low = 7, high = 7, diff = {23} }, -- Unbound Abomination
-    -- },
-    -- [2097] = { -- Operation: Mechagon
-    --     [4] = { low = 208, high = 208, diff = {23} }, -- HK-8 Aerial Oppression Unit
-    -- },
+    [1754] = { -- Freehold
+        [4] = { low = 7, high = 7, diff = {23} }, -- Harlan Sweete
+    },
+    [1762] = { -- Kings' Rest
+        [4] = { low = 7, high = 7, diff = {23} }, -- King Dazar
+    },
+    [1841] = { -- The Underrot
+        [4] = { low = 7, high = 7, diff = {23} }, -- Unbound Abomination
+    },
+    [2097] = { -- Operation: Mechagon
+        [4] = { low = 208, high = 208, diff = {23} }, -- HK-8 Aerial Oppression Unit
+    },
 }
 
 -- print current status and config to chatframe
