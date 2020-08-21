@@ -2,8 +2,8 @@ local F, L = unpack(select(2, ...))
 
 -- Lua functions
 local _G = _G
-local bit_band, bit_bor, gsub, ipairs, pairs, select, strfind = bit.band, bit.bor, gsub, ipairs, pairs, select, strfind
-local strlower, time, tinsert, tonumber, tremove, type = strlower, time, tinsert, tonumber, tremove, type
+local bit_band, bit_bor, format, gsub, ipairs, pairs, select = bit.band, bit.bor, format, gsub, ipairs, pairs, select
+local strfind, strlower, time, tinsert, tonumber, tremove, type = strfind, strlower, time, tinsert, tonumber, tremove, type
 
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
@@ -11,6 +11,7 @@ local C_BattleNet_GetAccountInfoByID = C_BattleNet.GetAccountInfoByID
 local C_PartyInfo_ConfirmInviteUnit = C_PartyInfo.ConfirmInviteUnit
 local C_PartyInfo_ConfirmLeaveParty = C_PartyInfo.ConfirmLeaveParty
 local C_PartyInfo_GetInviteReferralInfo = C_PartyInfo.GetInviteReferralInfo
+local GetDifficultyInfo = GetDifficultyInfo
 local GetInviteConfirmationInfo = GetInviteConfirmationInfo
 local GetLegacyRaidDifficultyID = GetLegacyRaidDifficultyID
 local GetNumGroupMembers = GetNumGroupMembers
@@ -44,6 +45,7 @@ local DIFFICULTY_RAID10_HEROIC = DIFFICULTY_RAID10_HEROIC
 local DIFFICULTY_RAID10_NORMAL = DIFFICULTY_RAID10_NORMAL
 local DIFFICULTY_RAID25_HEROIC = DIFFICULTY_RAID25_HEROIC
 local DIFFICULTY_RAID25_NORMAL = DIFFICULTY_RAID25_NORMAL
+local ERR_RAID_DIFFICULTY_CHANGED_S = ERR_RAID_DIFFICULTY_CHANGED_S
 local FONT_COLOR_CODE_CLOSE = FONT_COLOR_CODE_CLOSE
 local GREEN_FONT_COLOR_CODE = GREEN_FONT_COLOR_CODE
 local LE_INVITE_CONFIRMATION_REQUEST = LE_INVITE_CONFIRMATION_REQUEST
@@ -569,6 +571,12 @@ function F:CHAT_MSG_PARTY(_, text, playerName)
 
     SetRaidDifficultyID(RaidDifficulty)
     SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
+
+    local difficultyDisplayText =
+        GetDifficultyInfo(isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL) ..
+        GetDifficultyInfo(RaidDifficulty)
+
+    self:SendMessage(format(ERR_RAID_DIFFICULTY_CHANGED_S, difficultyDisplayText), 'PARTY')
 end
 
 function F:GROUP_INVITE_CONFIRMATION()
