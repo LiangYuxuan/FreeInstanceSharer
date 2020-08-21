@@ -8,8 +8,10 @@ local strfind, strlower, time, tinsert, tonumber, tremove, type = strfind, strlo
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
 local C_BattleNet_GetAccountInfoByID = C_BattleNet.GetAccountInfoByID
+local C_PartyInfo_ConfirmConvertToRaid = C_PartyInfo.ConfirmConvertToRaid
 local C_PartyInfo_ConfirmInviteUnit = C_PartyInfo.ConfirmInviteUnit
 local C_PartyInfo_ConfirmLeaveParty = C_PartyInfo.ConfirmLeaveParty
+local C_PartyInfo_ConvertToParty = C_PartyInfo.ConvertToParty
 local C_PartyInfo_GetInviteReferralInfo = C_PartyInfo.GetInviteReferralInfo
 local GetDifficultyInfo = GetDifficultyInfo
 local GetInviteConfirmationInfo = GetInviteConfirmationInfo
@@ -20,6 +22,7 @@ local GetRaidDifficultyID = GetRaidDifficultyID
 local GetSavedInstanceChatLink = GetSavedInstanceChatLink
 local GetSavedInstanceInfo = GetSavedInstanceInfo
 local IsInGroup = IsInGroup
+local IsInRaid = IsInRaid
 local PromoteToLeader = PromoteToLeader
 local RequestRaidInfo = RequestRaidInfo
 local ResetInstances = ResetInstances
@@ -85,7 +88,7 @@ local defaultConfig = {
     ["QueryQueueMsg"] = L["You're queued. Position in queue: QCURR."], -- Message when quering the positon in queue
     ["LeaveQueueMsg"] = ERR_LFG_LEFT_QUEUE, -- Message when leaving queue
     ["FetchErrorMsg"] = L["Failed to fetch your character information from Battle.net, please PM NAME."], -- Message when fail to fetch character name and realm from Battle.net
-    ["WelcomeMsg"] = L["MTIME second(s) to enter instance. Difficulty set to 25 players normal. Send '10/25/N/H' in party to change, 'leave' to leave."], -- Welcome message when player accepted invitation
+    ["WelcomeMsg"] = L["MTIME second(s) to enter instance. Difficulty set to 25 players normal. Send '10/25/N/H' in party to change, 'leave' to leave, 'raid'/'party' to convert to raid/party."], -- Welcome message when player accepted invitation
     ["TLELeaveMsg"] = L["Time Limit Exceeded. You're promoted to team leader."], -- Message before leaving party due to time limit exceeded
     ["AutoLeaveMsg"] = L["You're promoted to team leader. Good luck!"], -- Message before leaving party due to player entered instance
     ["AutoLeaveMsg631"] = L["You're promoted to team leader. Please set difficulty to Heroic. Good luck!"], -- Alt message before leaving party due to player entered Icecrown Citadel
@@ -234,6 +237,14 @@ function F:SendMessage(text, chatType, channel, currIndex)
 
     if chatType == 'BNWHISPER' then
         return BNSendWhisper(channel, text)
+    elseif chatType == 'SMART' then
+        if IsInRaid() then
+            chatType = 'RAID'
+        elseif IsInGroup() then
+            chatType = 'PARTY'
+        else
+            return
+        end
     end
 
     return SendChatMessage(text, chatType, nil, channel)
@@ -392,22 +403,24 @@ end
 -- player in party, STATUS_INVITING -> STATUS_INVITED
 function F:ConfirmInvite()
     self:RegisterEvent('CHAT_MSG_PARTY')
+    self:ReigsterEvent('CHAT_MSG_RAID')
     self:RegisterEvent('GROUP_INVITE_CONFIRMATION')
 
     self.status = STATUS_INVITED
     self.invitedTime = time()
 
-    self:SendMessage(self.db.WelcomeMsg, 'PARTY')
+    self:SendMessage(self.db.WelcomeMsg, 'SMART')
 end
 
 -- pending to leave, STATUS_INVITED -> STATUS_LEAVING
 function F:Leave(leaveMsg)
     self:UnregisterEvent('GROUP_ROSTER_UPDATE')
     self:UnregisterEvent('CHAT_MSG_PARTY')
+    self:UnregisterEvent('CHAT_MSG_RAID')
     self:RegisterEvent('CHAT_MSG_PARTY_LEADER', 'Release')
     self.status = STATUS_LEAVING
 
-    self:SendMessage(leaveMsg, 'PARTY')
+    self:SendMessage(leaveMsg, 'SMART')
 end
 
 -- release current user, STATUS_LEAVING -> STATUS_IDLE
@@ -511,6 +524,52 @@ function F:QueuePop(name)
     self:SendMessage(self.db.LeaveQueueMsg, 'WHISPER', name)
 end
 
+function F:RecvChatMessage(text)
+    text = strlower(text)
+    if strfind(text, 'leave') then
+        return F:Leave(self.db.AutoLeaveMsg)
+    elseif strfind(text, 'raid') then
+        return C_PartyInfo_ConfirmConvertToRaid()
+    elseif strfind(text, 'party') then
+        return C_PartyInfo_ConvertToParty()
+    end
+
+    local RaidDifficulty = GetRaidDifficultyID()
+    local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
+    local isTenPlayer = LegacyRaidDifficulty == DIFFICULTY_RAID10_NORMAL or LegacyRaidDifficulty == DIFFICULTY_RAID10_HEROIC
+    local isHeroic = RaidDifficulty == DIFFICULTY_PRIMARYRAID_HEROIC
+
+    isTenPlayer = strfind(text, '10') and not strfind(text, '25')
+    isHeroic = strfind(text, 'h') and not strfind(text, 'n')
+    RaidDifficulty = isHeroic and DIFFICULTY_PRIMARYRAID_HEROIC or DIFFICULTY_PRIMARYRAID_NORMAL
+    LegacyRaidDifficulty = isHeroic and (
+        isTenPlayer and DIFFICULTY_RAID10_HEROIC or DIFFICULTY_RAID25_HEROIC
+    ) or (
+        isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL
+    )
+
+    SetRaidDifficultyID(RaidDifficulty)
+    SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
+
+    local difficultyDisplayText =
+        GetDifficultyInfo(isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL) ..
+        GetDifficultyInfo(RaidDifficulty)
+
+    self:SendMessage(format(ERR_RAID_DIFFICULTY_CHANGED_S, difficultyDisplayText), 'SMART')
+end
+
+function F:CHAT_MSG_PARTY(_, text, playerName)
+    self:Debug("Received party message '%s' from %s", text, playerName)
+
+    self:RecvChatMessage(text)
+end
+
+function F:CHAT_MSG_RAID(_, text, playerName)
+    self:Debug("Received raid message '%s' from %s", text, playerName)
+
+    self:RecvChatMessage(text)
+end
+
 function F:CHAT_MSG_WHISPER(_, text, sender)
     self:Debug("Received whisper '%s' from %s", text, sender)
 
@@ -545,38 +604,6 @@ function F:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _, _
     else
         self:SendMessage(self.db.FetchErrorMsg, 'BNWHISPER', presenceID)
     end
-end
-
-function F:CHAT_MSG_PARTY(_, text, playerName)
-    self:Debug("Received party message '%s' from %s", text, playerName)
-
-    local RaidDifficulty = GetRaidDifficultyID()
-    local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
-    local isTenPlayer = LegacyRaidDifficulty == DIFFICULTY_RAID10_NORMAL or LegacyRaidDifficulty == DIFFICULTY_RAID10_HEROIC
-    local isHeroic = RaidDifficulty == DIFFICULTY_PRIMARYRAID_HEROIC
-
-    text = strlower(text)
-    if strfind(text, 'leave') then
-        return F:Leave(self.db.AutoLeaveMsg)
-    end
-
-    isTenPlayer = strfind(text, '10') and not strfind(text, '25')
-    isHeroic = strfind(text, 'h') and not strfind(text, 'n')
-    RaidDifficulty = isHeroic and DIFFICULTY_PRIMARYRAID_HEROIC or DIFFICULTY_PRIMARYRAID_NORMAL
-    LegacyRaidDifficulty = isHeroic and (
-        isTenPlayer and DIFFICULTY_RAID10_HEROIC or DIFFICULTY_RAID25_HEROIC
-    ) or (
-        isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL
-    )
-
-    SetRaidDifficultyID(RaidDifficulty)
-    SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
-
-    local difficultyDisplayText =
-        GetDifficultyInfo(isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL) ..
-        GetDifficultyInfo(RaidDifficulty)
-
-    self:SendMessage(format(ERR_RAID_DIFFICULTY_CHANGED_S, difficultyDisplayText), 'PARTY')
 end
 
 function F:GROUP_INVITE_CONFIRMATION()
