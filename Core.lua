@@ -403,7 +403,7 @@ end
 -- player in party, STATUS_INVITING -> STATUS_INVITED
 function F:ConfirmInvite()
     self:RegisterEvent('CHAT_MSG_PARTY')
-    self:ReigsterEvent('CHAT_MSG_RAID')
+    self:RegisterEvent('CHAT_MSG_RAID')
     self:RegisterEvent('GROUP_INVITE_CONFIRMATION')
 
     self.status = STATUS_INVITED
