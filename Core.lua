@@ -551,8 +551,8 @@ function F:RecvChatMessage(text)
     local isTenPlayer = LegacyRaidDifficulty == DIFFICULTY_RAID10_NORMAL or LegacyRaidDifficulty == DIFFICULTY_RAID10_HEROIC
     local isHeroic = RaidDifficulty == DIFFICULTY_PRIMARYRAID_HEROIC
 
-    isTenPlayer = strfind(text, '10') and not strfind(text, '25')
-    isHeroic = strfind(text, 'h') and not strfind(text, 'n')
+    isTenPlayer = (isTenPlayer or strfind(text, '10')) and not strfind(text, '25')
+    isHeroic = (isHeroic or strfind(text, 'h')) and not strfind(text, 'n')
     RaidDifficulty = isHeroic and DIFFICULTY_PRIMARYRAID_HEROIC or DIFFICULTY_PRIMARYRAID_NORMAL
     LegacyRaidDifficulty = isHeroic and (
         isTenPlayer and DIFFICULTY_RAID10_HEROIC or DIFFICULTY_RAID25_HEROIC
