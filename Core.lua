@@ -418,12 +418,14 @@ function F:Leave(leaveMsg)
     self:UnregisterEvent('CHAT_MSG_PARTY')
     self:UnregisterEvent('CHAT_MSG_RAID')
     self:RegisterEvent('CHAT_MSG_PARTY_LEADER', 'Release')
+    self:RegisterEvent('CHAT_MSG_RAID_LEADER', 'Release')
     self.status = STATUS_LEAVING
 
     if not IsInGroup() then
         -- player left
         self:Debug("Player left")
         F:Release()
+        return
     end
 
     self:SendMessage(leaveMsg, 'SMART')
@@ -433,8 +435,10 @@ end
 function F:Release()
     self:UnregisterEvent('GROUP_ROSTER_UPDATE')
     self:UnregisterEvent('CHAT_MSG_PARTY')
+    self:UnregisterEvent('CHAT_MSG_RAID')
     self:UnregisterEvent('GROUP_INVITE_CONFIRMATION')
     self:UnregisterEvent('CHAT_MSG_PARTY_LEADER')
+    self:UnregisterEvent('CHAT_MSG_RAID_LEADER')
 
     if IsInGroup() then
         if GetNumGroupMembers() > 1 then
