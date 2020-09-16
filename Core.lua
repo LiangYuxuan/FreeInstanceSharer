@@ -3,7 +3,7 @@ local F, L = unpack(select(2, ...))
 -- Lua functions
 local _G = _G
 local bit_band, bit_bor, format, gsub, ipairs, pairs, select = bit.band, bit.bor, format, gsub, ipairs, pairs, select
-local strfind, strlower, time, tinsert, tonumber, tremove, type = strfind, strlower, time, tinsert, tonumber, tremove, type
+local strfind, strlower, tinsert, tonumber, tremove, type = strfind, strlower, tinsert, tonumber, tremove, type
 
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
@@ -21,6 +21,7 @@ local GetNumSavedInstances = GetNumSavedInstances
 local GetRaidDifficultyID = GetRaidDifficultyID
 local GetSavedInstanceChatLink = GetSavedInstanceChatLink
 local GetSavedInstanceInfo = GetSavedInstanceInfo
+local GetTime = GetTime
 local IsInGroup = IsInGroup
 local IsInRaid = IsInRaid
 local PromoteToLeader = PromoteToLeader
@@ -407,7 +408,7 @@ function F:ConfirmInvite()
     self:RegisterEvent('GROUP_INVITE_CONFIRMATION')
 
     self.status = STATUS_INVITED
-    self.invitedTime = time()
+    self.invitedTime = GetTime()
 
     self:SendMessage(self.db.WelcomeMsg, 'SMART')
 end
@@ -460,7 +461,7 @@ function F:FetchUpdate()
         end
     elseif self.status == STATUS_INVITED then
         -- check max waiting time
-        local elapsed = time() - self.invitedTime
+        local elapsed = GetTime() - self.invitedTime
         if self.db.TimeLimit ~= 0 and elapsed >= self.db.TimeLimit then
             self:Debug("Leaving party: Time Limit Exceeded")
             self:Leave(self.db.TLELeaveMsg)
@@ -495,6 +496,12 @@ function F:GROUP_ROSTER_UPDATE()
         end
     elseif self.status == STATUS_INVITED then
         if not IsInGroup() then
+            if GetTime() - self.invitedTime < .5 then
+                -- protection: delay check here
+                -- IsInGroup() return false just after invite in some case
+                self:ScheduleTimer('GROUP_ROSTER_UPDATE', .5)
+                return
+            end
             -- player left
             self:Debug("Player left")
             self:Release()
