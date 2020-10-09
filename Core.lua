@@ -93,6 +93,8 @@ local defaultConfig = {
     ["TLELeaveMsg"] = L["Time Limit Exceeded. You're promoted to team leader."], -- Message before leaving party due to time limit exceeded
     ["AutoLeaveMsg"] = L["You're promoted to team leader. Good luck!"], -- Message before leaving party due to player entered instance
     ["AutoLeaveMsg631"] = L["You're promoted to team leader. Please set difficulty to Heroic. Good luck!"], -- Alt message before leaving party due to player entered Icecrown Citadel
+
+    ["DebugLog"] = {}, -- Debug Message Log
 }
 
 local oldVerDBMap = {
@@ -284,6 +286,21 @@ function F:OnInitialize()
         end
     end
     self.db = FISConfig
+
+    -- clean up old logs
+    local maxSessionID = 0
+    for sessionID in pairs(self.db.DebugLog) do
+        if sessionID > maxSessionID then
+            maxSessionID = sessionID
+        end
+    end
+    for sessionID in pairs(self.db.DebugLog) do
+        if sessionID < maxSessionID - 2 then
+            self.db.DebugLog[sessionID] = nil
+        end
+    end
+
+    self.currSession = maxSessionID + 1
 end
 
 function F:OnEnable()

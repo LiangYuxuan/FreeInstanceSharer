@@ -28,8 +28,20 @@ function F:Print(...)
     _G.DEFAULT_CHAT_FRAME:AddMessage(self.addonPrefix .. format(...))
 end
 
+function F:Log(...)
+    if not self.db.DebugLog[self.currSession] then
+        self.db.DebugLog[self.currSession] = {}
+    end
+
+    tinsert(
+        self.db.DebugLog[self.currSession],
+        date("%Y-%m-%d %H:%M:%S%z") .. " - Status: " .. self.status .. " - " .. format(...)
+    )
+end
+
 function F:Debug(...)
     if self.db.Debug then
+        self:Log(...)
         self:Print(...)
     end
 end
