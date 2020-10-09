@@ -66,13 +66,19 @@ local options = {
                     name = L["Auto Invite on Battle.net Whisper"],
                     type = 'toggle',
                 },
+                BlacklistMaliciousUser = {
+                    order = 34,
+                    name = L["Blacklist Malicious User"],
+                    type = 'toggle',
+                    disabled = function() return not F.db.Enable or not F.db.InviteOnWhisper end,
+                },
                 AutoQueue = {
                     order = 41,
                     name = L["Auto Queuing"],
                     type = 'toggle',
                 },
                 LeaveQueueOnWhisper = {
-                    order = 34,
+                    order = 42,
                     name = L["Leave Queue on Whisper"],
                     type = 'toggle',
                     disabled = function() return not F.db.Enable or not F.db.AutoQueue end,

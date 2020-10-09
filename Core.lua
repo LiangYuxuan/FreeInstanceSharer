@@ -78,8 +78,9 @@ local defaultConfig = {
     ["AutoExtend"] = true, -- Auto extend saved instances
     ["InviteOnWhisper"] = true, -- Invite when received preset whisper message
     ["InviteOnWhisperMsg"] = "123", -- Preset whisper message
-    ["InviteOnBNWhisper"] = true, -- Invite when received preset Battlen.net whisper message
-    ["InviteOnBNWhisperMsg"] = "123", -- Preset Battlen.net whisper message
+    ["InviteOnBNWhisper"] = true, -- Invite when received preset Battle.net whisper message
+    ["InviteOnBNWhisperMsg"] = "123", -- Preset Battle.net whisper message
+    ["BlacklistMaliciousUser"] = true, -- Add malicious user to blacklist and ignore further message
     ["AutoQueue"] = true, -- Queue when more than one player try to get invited
     ["LeaveQueueOnWhisper"] = true, -- Leave queue when received preset whisper message
     ["LeaveQueueOnWhisperMsg"] = "233", -- Preset whisper message
@@ -94,7 +95,8 @@ local defaultConfig = {
     ["AutoLeaveMsg"] = L["You're promoted to team leader. Good luck!"], -- Message before leaving party due to player entered instance
     ["AutoLeaveMsg631"] = L["You're promoted to team leader. Please set difficulty to Heroic. Good luck!"], -- Alt message before leaving party due to player entered Icecrown Citadel
 
-    ["DebugLog"] = {}, -- Debug Message Log
+    ["DebugLog"] = {}, -- Debug message log
+    ["Blacklist"] = {}, -- User blacklist
 }
 
 local oldVerDBMap = {
@@ -610,17 +612,48 @@ function F:CHAT_MSG_RAID(_, text, playerName)
     self:RecvChatMessage(text)
 end
 
-function F:CHAT_MSG_WHISPER(_, text, sender)
-    self:Debug("Received whisper '%s' from %s", text, sender)
+do
+    local lastMessageTime = {}
+    local lastMessageCount = {}
 
-    if self.db.InviteOnWhisper and text == self.db.InviteOnWhisperMsg then
-        if not self.db.AutoQueue then
-            self:Invite(sender)
-        else
-            self:QueuePush(sender)
+    function F:CHAT_MSG_WHISPER(_, text, sender)
+        self:Debug("Received whisper '%s' from %s", text, sender)
+
+        if self.db.BlacklistMaliciousUser then
+            if tContains(self.db.Blacklist, sender) then
+                self:Debug("Ignored whisper from malicious user %s", sender)
+                return
+            end
+
+            -- rule: 5 messages within 2 seconds
+
+            local now = GetTime()
+            if lastMessageTime[sender] and lastMessageTime[sender] >= now - 2 then
+                if lastMessageCount[sender] >= 4 then -- before increases
+                    -- malicious user detected!
+                    self:Debug("Malicious user %s detected", sender)
+
+                    tinsert(self.db.Blacklist, sender)
+                    return
+                end
+            else
+                -- reset count after 2 seconds
+                lastMessageCount[sender] = nil
+            end
+
+            lastMessageTime[sender] = now
+            lastMessageCount[sender] = (lastMessageCount[sender] or 0) + 1
         end
-    elseif self.db.LeaveQueueOnWhisper and text == self.db.LeaveQueueOnWhisperMsg then
-        self:QueuePop(sender)
+
+        if self.db.InviteOnWhisper and text == self.db.InviteOnWhisperMsg then
+            if not self.db.AutoQueue then
+                self:Invite(sender)
+            else
+                self:QueuePush(sender)
+            end
+        elseif self.db.LeaveQueueOnWhisper and text == self.db.LeaveQueueOnWhisperMsg then
+            self:QueuePop(sender)
+        end
     end
 end
 
