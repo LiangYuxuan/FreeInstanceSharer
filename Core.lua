@@ -554,7 +554,7 @@ function F:QueuePush(name)
 end
 
 -- remove a player from queue
-function F:QueuePop(name)
+function F:QueuePop(name, leaveQueueMsg)
     self:Debug("Removing %s from queue", name)
 
     for index, playerName in pairs(self.queue) do
@@ -563,7 +563,7 @@ function F:QueuePop(name)
             break
         end
     end
-    self:SendMessage(self.db.LeaveQueueMsg, 'WHISPER', name)
+    self:SendMessage(leaveQueueMsg, 'WHISPER', name)
 end
 
 function F:RecvChatMessage(text)
@@ -633,6 +633,7 @@ do
                     -- malicious user detected!
                     self:Debug("Malicious user %s detected", sender)
 
+                    self:QueuePop(sender)
                     tinsert(self.db.Blacklist, sender)
                     return
                 end
@@ -652,7 +653,7 @@ do
                 self:QueuePush(sender)
             end
         elseif self.db.LeaveQueueOnWhisper and text == self.db.LeaveQueueOnWhisperMsg then
-            self:QueuePop(sender)
+            self:QueuePop(sender, self.db.LeaveQueueMsg)
         end
     end
 end
