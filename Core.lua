@@ -434,12 +434,13 @@ end
 
 -- pending to leave, STATUS_INVITED -> STATUS_LEAVING
 function F:Leave(leaveMsg)
-    self:UnregisterEvent('GROUP_ROSTER_UPDATE')
     self:UnregisterEvent('CHAT_MSG_PARTY')
     self:UnregisterEvent('CHAT_MSG_RAID')
     self:RegisterEvent('CHAT_MSG_PARTY_LEADER', 'Release')
     self:RegisterEvent('CHAT_MSG_RAID_LEADER', 'Release')
+
     self.status = STATUS_LEAVING
+    self.leavingTime = GetTime()
 
     if not IsInGroup() then
         -- player left
@@ -495,6 +496,13 @@ function F:FetchUpdate()
                 self:Leave(self.db['AutoLeaveMsg' .. instanceID] or self.db.AutoLeaveMsg)
                 return
             end
+        end
+    elseif self.status == STATUS_LEAVING then
+        if self.leavingTime < GetTime() - 5 then
+            -- 5 seconds after trying to send leaving message
+            -- but no message sent
+            self:Debug("Failed to send leaving message")
+            self:Release()
         end
     end
 end
