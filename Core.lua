@@ -424,8 +424,8 @@ function F:Leave(leaveMsg)
 
     if not IsInGroup() then
         -- player left
-        self:Debug("Player left")
-        F:Release()
+        self:Debug("Player left before leaving message sent")
+        self:Release()
         return
     end
 
@@ -503,13 +503,13 @@ function F:GROUP_ROSTER_UPDATE()
                 return
             end
             -- player left
-            self:Debug("Player left")
+            self:Debug("Player left while in group")
             self:Release()
         end
     elseif self.status == STATUS_LEAVING then
         if not IsInGroup() then
             -- player left
-            self:Debug("Player left")
+            self:Debug("Player left while sending leaving message")
             self:Release()
         end
     end
@@ -550,7 +550,7 @@ end
 function F:RecvChatMessage(text)
     text = strlower(text)
     if strfind(text, 'leave') then
-        return F:Leave(self.db.AutoLeaveMsg)
+        return self:Leave(self.db.AutoLeaveMsg)
     elseif strfind(text, 'raid') then
         return C_PartyInfo_ConfirmConvertToRaid()
     elseif strfind(text, 'party') then
