@@ -43,12 +43,13 @@ local StaticPopupSpecial_Hide = StaticPopupSpecial_Hide
 local Enum_PartyRequestJoinRelation_Friend = Enum.PartyRequestJoinRelation.Friend
 local Enum_PartyRequestJoinRelation_Guild = Enum.PartyRequestJoinRelation.Guild
 
-local DIFFICULTY_PRIMARYRAID_HEROIC = DIFFICULTY_PRIMARYRAID_HEROIC
-local DIFFICULTY_PRIMARYRAID_NORMAL = DIFFICULTY_PRIMARYRAID_NORMAL
-local DIFFICULTY_RAID10_HEROIC = DIFFICULTY_RAID10_HEROIC
-local DIFFICULTY_RAID10_NORMAL = DIFFICULTY_RAID10_NORMAL
-local DIFFICULTY_RAID25_HEROIC = DIFFICULTY_RAID25_HEROIC
-local DIFFICULTY_RAID25_NORMAL = DIFFICULTY_RAID25_NORMAL
+local DifficultyUtil_ID_PrimaryRaidHeroic = DifficultyUtil.ID.PrimaryRaidHeroic
+local DifficultyUtil_ID_PrimaryRaidNormal = DifficultyUtil.ID.PrimaryRaidNormal
+local DifficultyUtil_ID_Raid10Heroic = DifficultyUtil.ID.Raid10Heroic
+local DifficultyUtil_ID_Raid10Normal = DifficultyUtil.ID.Raid10Normal
+local DifficultyUtil_ID_Raid25Heroic = DifficultyUtil.ID.Raid25Heroic
+local DifficultyUtil_ID_Raid25Normal = DifficultyUtil.ID.Raid25Normal
+local DifficultyUtil_ID_DungeonMythic = DifficultyUtil.ID.DungeonMythic
 local ERR_RAID_DIFFICULTY_CHANGED_S = ERR_RAID_DIFFICULTY_CHANGED_S
 local FONT_COLOR_CODE_CLOSE = FONT_COLOR_CODE_CLOSE
 local GREEN_FONT_COLOR_CODE = GREEN_FONT_COLOR_CODE
@@ -407,9 +408,9 @@ end
 function F:Invite(name)
     self:Debug("Inviting %s to party", name)
 
-    SetDungeonDifficultyID(23) -- Dungeon Mythic
-    SetRaidDifficultyID(DIFFICULTY_PRIMARYRAID_NORMAL) -- Raid Normal
-    SetLegacyRaidDifficultyID(DIFFICULTY_RAID25_NORMAL) -- Legacy Raid 25 Players Normal
+    SetDungeonDifficultyID(DifficultyUtil_ID_DungeonMythic) -- Dungeon Mythic
+    SetRaidDifficultyID(DifficultyUtil_ID_PrimaryRaidNormal) -- Raid Normal
+    SetLegacyRaidDifficultyID(DifficultyUtil_ID_Raid25Normal) -- Legacy Raid 25 Players Normal
     ResetInstances()
 
     if self.db.AutoQueue then
@@ -586,23 +587,23 @@ function F:RecvChatMessage(text)
 
     local RaidDifficulty = GetRaidDifficultyID()
     local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
-    local isTenPlayer = LegacyRaidDifficulty == DIFFICULTY_RAID10_NORMAL or LegacyRaidDifficulty == DIFFICULTY_RAID10_HEROIC
-    local isHeroic = RaidDifficulty == DIFFICULTY_PRIMARYRAID_HEROIC
+    local isTenPlayer = LegacyRaidDifficulty == DifficultyUtil_ID_Raid10Normal or LegacyRaidDifficulty == DifficultyUtil_ID_Raid10Heroic
+    local isHeroic = RaidDifficulty == DifficultyUtil_ID_PrimaryRaidHeroic
 
     isTenPlayer = (isTenPlayer or strfind(text, '10')) and not strfind(text, '25')
     isHeroic = (isHeroic or strfind(text, 'h')) and not strfind(text, 'n')
-    RaidDifficulty = isHeroic and DIFFICULTY_PRIMARYRAID_HEROIC or DIFFICULTY_PRIMARYRAID_NORMAL
+    RaidDifficulty = isHeroic and DifficultyUtil_ID_PrimaryRaidHeroic or DifficultyUtil_ID_PrimaryRaidNormal
     LegacyRaidDifficulty = isHeroic and (
-        isTenPlayer and DIFFICULTY_RAID10_HEROIC or DIFFICULTY_RAID25_HEROIC
+        isTenPlayer and DifficultyUtil_ID_Raid10Heroic or DifficultyUtil_ID_Raid25Heroic
     ) or (
-        isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL
+        isTenPlayer and DifficultyUtil_ID_Raid10Normal or DifficultyUtil_ID_Raid25Normal
     )
 
     SetRaidDifficultyID(RaidDifficulty)
     SetLegacyRaidDifficultyID(LegacyRaidDifficulty)
 
     local difficultyDisplayText =
-        GetDifficultyInfo(isTenPlayer and DIFFICULTY_RAID10_NORMAL or DIFFICULTY_RAID25_NORMAL) ..
+        GetDifficultyInfo(isTenPlayer and DifficultyUtil_ID_Raid10Normal or DifficultyUtil_ID_Raid25Normal) ..
         GetDifficultyInfo(RaidDifficulty)
 
     self:SendMessage(format(ERR_RAID_DIFFICULTY_CHANGED_S, difficultyDisplayText), 'SMART')

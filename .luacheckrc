@@ -35,6 +35,7 @@ globals = {
 	"C_Timer",
 	"CooldownFrame_Set",
 	"DEFAULT_CHAT_FRAME",
+	"DifficultyUtil",
 	"GameTooltip_Hide",
 	"GameTooltip_SetDefaultAnchor",
 	"GameTooltip_UnitColor",
