@@ -194,7 +194,7 @@ local options = {
 function C:OnEnable()
     AceConfig:RegisterOptionsTable('FreeInstanceSharer', options, 'fis')
     self.firstGroup = AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Free Instance Sharer"], nil, 'General')
-    self.lastGroup = AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Notify Message"], 'FreeInstanceSharer', 'Message')
+    self.lastGroup = AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Notify Message"], L["Free Instance Sharer"], 'Message')
 end
 
 function C:ShowConfig()
