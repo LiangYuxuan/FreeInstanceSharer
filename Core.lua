@@ -94,7 +94,6 @@ local defaultConfig = {
     ["WelcomeMsg"] = L["MTIME second(s) to enter instance. Difficulty set to 25 players normal. Send '10/25/N/H' in party to change, 'leave' to leave, 'raid'/'party' to convert to raid/party."], -- Welcome message when player accepted invitation
     ["TLELeaveMsg"] = L["Time Limit Exceeded. You're promoted to team leader."], -- Message before leaving party due to time limit exceeded
     ["AutoLeaveMsg"] = L["You're promoted to team leader. Good luck!"], -- Message before leaving party due to player entered instance
-    ["AutoLeaveMsg631"] = L["You're promoted to team leader. Please set difficulty to Heroic. Good luck!"], -- Alt message before leaving party due to player entered Icecrown Citadel
 
     ["DebugLog"] = {}, -- Debug message log
     ["Blacklist"] = {}, -- User blacklist
@@ -140,9 +139,6 @@ local supportedInstances = {
     -- Wrath of the Lich King
     [603] = { -- Ulduar
         [16] = { low = 3518, high = 122878, diff = {14} }, -- Yogg-Saron
-    },
-    [631] = { -- Icecrown Citadel
-        [12] = { low = 2039, high = 2047, diff = {3, 4, 5, 6} }, -- The Lich King
     },
     -- Cataclysm
     [669] = { -- Blackwing Descent
@@ -494,7 +490,9 @@ function F:FetchUpdate()
             local instanceID = select(4, UnitPosition('party1'))
             if instanceID and supportedInstances[instanceID] then
                 self:Debug("Leaving party: Player entered instance %d", instanceID)
-                self:Leave(self.db['AutoLeaveMsg' .. instanceID] or self.db.AutoLeaveMsg)
+                -- disable alt leave message feature for now (icc no longer available)
+                -- self:Leave(self.db['AutoLeaveMsg' .. instanceID] or self.db.AutoLeaveMsg)
+                self:Leave(self.db.AutoLeaveMsg)
                 return
             end
         end

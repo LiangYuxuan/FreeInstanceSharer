@@ -170,13 +170,6 @@ local options = {
                     width = "full",
                     multiline = true,
                 },
-                AutoLeaveMsg631 = {
-                    order = 24,
-                    name = format(L["Alt Message Before Leaving due to player entered %s"], DUNGEON_FLOOR_ICECROWNCITADELDEATHKNIGHT3),
-                    type = 'input',
-                    width = "full",
-                    multiline = true,
-                },
                 TextReplace = {
                     order = 91,
                     name = L["You can insert following words into the text field, and it will be replace by corresponding variables."] .. "\n" ..
