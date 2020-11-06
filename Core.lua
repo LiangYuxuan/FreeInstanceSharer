@@ -446,6 +446,10 @@ function F:Leave(leaveMsg)
         return
     end
 
+    if not leaveMsg or leaveMsg == '' then
+        self:Release()
+    end
+
     self:SendMessage(leaveMsg, 'SMART')
 end
 
