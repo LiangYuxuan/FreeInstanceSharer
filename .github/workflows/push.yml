@@ -9,22 +9,24 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
-    - uses: LiangYuxuan/action-luacheck@master
-      with:
-        args: '--no-color -q'
+      - name: Install and Run Luacheck
+        uses: nebularg/actions-luacheck@v1
+        with:
+          args: "--no-color -q"
+          annotate: warning
 
-    - uses: LiangYuxuan/action-wowace-localization-import@master
-      env:
-        CF_API_KEY: ${{ secrets.CF_API_KEY }}
+      - name: Update CurseForge Translations
+        uses: LiangYuxuan/action-wowace-localization-import@master
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
 
-    - name: Create Retail Package
-      run: curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh | bash
-      env:
-        CF_API_KEY: ${{ secrets.CF_API_KEY }}
-        GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Retail Package
+        uses: BigWigsMods/packager@master
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}

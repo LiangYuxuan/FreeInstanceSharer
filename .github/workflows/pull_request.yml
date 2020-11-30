@@ -4,23 +4,26 @@ on: [pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
-    - uses: LiangYuxuan/action-luacheck@master
-      with:
-        args: '--no-color -q'
+      - name: Install and Run Luacheck
+        uses: nebularg/actions-luacheck@v1
+        with:
+          args: "--no-color -q"
+          annotate: warning
 
-    - name: Create Retail Package
-      run: curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh | bash -s -- -d -z
-      env:
-        CF_API_KEY: ${{ secrets.CF_API_KEY }}
-        GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Retail Package
+        uses: BigWigsMods/packager@master
+        with:
+          args: "-d -z"
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: actions/upload-artifact@master
-      with:
-        name: pull-request-${{ github.head_ref }}
-        path: .release/
+      - uses: actions/upload-artifact@master
+        with:
+          name: pull-request-${{ github.head_ref }}-${{ github.event.number }}
+          path: .release/
