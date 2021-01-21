@@ -213,6 +213,10 @@ local supportedInstances = {
     [2097] = { -- Operation: Mechagon
         [4] = { low = 208, high = 208, diff = {23} }, -- HK-8 Aerial Oppression Unit
     },
+    -- Shadowlands
+    -- [2286] = { -- The Necrotic Wake
+    --     [4] = { low = 7, high = 7, diff = {23} }, -- Nalthor the Rimebinder
+    -- },
 }
 
 -- print current status and config to chatframe
