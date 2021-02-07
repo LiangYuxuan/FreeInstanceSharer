@@ -634,6 +634,11 @@ do
     local lastMessageTime = {}
     local lastMessageCount = {}
 
+    -- override point for FreeInstanceSharer_DynamicWhisper
+    function F:IsInviteOnWhisperMsg(_, text)
+        return text == self.db.InviteOnWhisperMsg
+    end
+
     function F:CHAT_MSG_WHISPER(_, text, sender)
         self:Debug("Received whisper '%s' from %s", text, sender)
 
@@ -664,7 +669,7 @@ do
             lastMessageCount[sender] = (lastMessageCount[sender] or 0) + 1
         end
 
-        if self.db.InviteOnWhisper and text == self.db.InviteOnWhisperMsg then
+        if self.db.InviteOnWhisper and self:IsInviteOnWhisperMsg(sender, text) then
             if not self.db.AutoQueue then
                 self:Invite(sender)
             else
