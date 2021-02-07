@@ -140,6 +140,9 @@ local supportedInstances = {
     [603] = { -- Ulduar
         [16] = { low = 3518, high = 122878, diff = {14} }, -- Yogg-Saron
     },
+    [631] = { -- Icecrown Citadel
+        [12] = { low = 2039, high = 2047, diff = {3, 4, 5, 6} }, -- The Lich King
+    },
     -- Cataclysm
     [669] = { -- Blackwing Descent
         [6] = { low = 47, high = 47, diff = {3, 4, 5, 6} }, -- Nefarian and Onyxia
