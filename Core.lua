@@ -286,7 +286,7 @@ function F:OnInitialize()
         end
         -- apply default value
         for key, value in pairs(defaultConfig) do
-            if not FISConfig[key] then
+            if type(FISConfig[key]) == 'nil' then
                 FISConfig[key] = value
             end
         end
