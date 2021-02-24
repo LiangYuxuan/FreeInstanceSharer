@@ -735,4 +735,6 @@ function F:GROUP_INVITE_CONFIRMATION()
 
     RespondToInviteConfirmation(invite, true)
     StaticPopup_Hide('GROUP_INVITE_CONFIRMATION')
+
+    self:QueuePop(name)
 end
