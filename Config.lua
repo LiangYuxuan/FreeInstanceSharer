@@ -7,6 +7,8 @@ local AceConfigDialog = LibStub('AceConfigDialog-3.0')
 local _G = _G
 
 -- WoW API / Variables
+local RequestRaidInfo = RequestRaidInfo
+
 local InterfaceOptionsFrame_OpenToCategory = InterfaceOptionsFrame_OpenToCategory
 
 local options = {
@@ -24,77 +26,127 @@ local options = {
             type = 'group',
             name = L["General settings"],
             get = function(info) return F.db[info[#info]] end,
-            set = function(info, value) F.db[info[#info]] = value; F:Toggle() end,
-            disabled = function() return not F.db.Enable end,
+            set = function(info, value) F.db[info[#info]] = value end,
             args = {
                 Enable = {
                     order = 1,
                     name = ENABLE,
                     type = 'toggle',
                     set = function(info, value) F.db[info[#info]] = value; F:OnEnable() end,
-                    disabled = function() return false end,
-                },
-                StopDC = {
-                    order = 21,
-                    name = L["Stop Disconnecting"],
-                    type = 'toggle',
                 },
                 Debug = {
-                    order = 26,
+                    order = 2,
                     name = L["Debug Mode"],
                     type = 'toggle',
-                    disabled = function() return false end,
                 },
-                Space1 = {
+                Utility = {
+                    order = 10,
+                    name = L["Utility"],
+                    type = 'group',
+                    guiInline = true,
+                    set = function(info, value) F.db[info[#info]] = value; F:Update() end,
+                    disabled = function() return not F.db.Enable end,
+                    args = {
+                        StopDC = {
+                            order = 11,
+                            name = L["Stop Disconnecting"],
+                            type = 'toggle',
+                        },
+                        AutoExtend = {
+                            order = 12,
+                            name = L["Auto Extend Saved Instances"],
+                            type = 'toggle',
+                            set = function(info, value) F.db[info[#info]] = value; RequestRaidInfo() end,
+                        },
+                        DNDMessage = {
+                            order = 13,
+                            name = L["Use DND Message"],
+                            type = 'toggle',
+                        },
+                    },
+                },
+                Invite = {
+                    order = 20,
+                    name = L["Invite"],
+                    type = 'group',
+                    guiInline = true,
+                    disabled = function() return not F.db.Enable end,
+                    args = {
+                        InviteOnWhisper = {
+                            order = 21,
+                            name = L["Auto Invite on Whisper"],
+                            type = 'toggle',
+                            set = function(info, value) F.db[info[#info]] = value; F:Update() end,
+                        },
+                        InviteOnBNWhisper = {
+                            order = 22,
+                            name = L["Auto Invite on Battle.net Whisper"],
+                            type = 'toggle',
+                            set = function(info, value) F.db[info[#info]] = value; F:Update() end,
+                        },
+                        BlacklistMaliciousUser = {
+                            order = 23,
+                            name = L["Blacklist Malicious User"],
+                            type = 'toggle',
+                            disabled = function() return not F.db.Enable or not F.db.InviteOnWhisper end,
+                        },
+                    },
+                },
+                Queue = {
                     order = 30,
-                    type = 'description',
-                    name = "",
-                    width = 'full',
-                },
-                AutoExtend = {
-                    order = 31,
-                    name = L["Auto Extend Saved Instances"],
-                    type = 'toggle',
-                },
-                InviteOnWhisper = {
-                    order = 32,
-                    name = L["Auto Invite on Whisper"],
-                    type = 'toggle',
-                },
-                InviteOnBNWhisper = {
-                    order = 33,
-                    name = L["Auto Invite on Battle.net Whisper"],
-                    type = 'toggle',
-                },
-                BlacklistMaliciousUser = {
-                    order = 34,
-                    name = L["Blacklist Malicious User"],
-                    type = 'toggle',
-                    disabled = function() return not F.db.Enable or not F.db.InviteOnWhisper end,
-                },
-                AutoQueue = {
-                    order = 41,
                     name = L["Auto Queuing"],
-                    type = 'toggle',
-                },
-                LeaveQueueOnWhisper = {
-                    order = 42,
-                    name = L["Leave Queue on Whisper"],
-                    type = 'toggle',
+                    type = 'group',
+                    guiInline = true,
                     disabled = function() return not F.db.Enable or not F.db.AutoQueue end,
+                    args = {
+                        AutoQueue = {
+                            order = 31,
+                            name = L["Auto Queuing"],
+                            type = 'toggle',
+                            set = function(info, value) F.db[info[#info]] = value; F:ReleaseAndUpdate() end,
+                            disabled = function() return not F.db.Enable end,
+                        },
+                        LeaveQueueOnWhisper = {
+                            order = 32,
+                            name = L["Leave Queue on Whisper"],
+                            type = 'toggle',
+                        },
+                        TimeLimit = {
+                            order = 33,
+                            name = L["Time Limit (s)"],
+                            type = 'range',
+                            min = 0, max = 120, step = 1,
+                        },
+                        AutoLeave = {
+                            order = 34,
+                            name = L["Auto Leave Party"],
+                            type = 'toggle',
+                        },
+                    },
                 },
-                TimeLimit = {
-                    order = 51,
-                    name = L["Time Limit (s)"],
-                    type = 'range',
-                    min = 0, max = 120, step = 1,
+                Message = {
+                    order = 40,
+                    name = L["Notify Message"],
+                    type = 'group',
+                    guiInline = true,
                     disabled = function() return not F.db.Enable or not F.db.AutoQueue end,
-                },
-                AutoLeave = {
-                    order = 52,
-                    name = L["Auto Leave Party"],
-                    type = 'toggle',
-                    disabled = function() return not F.db.Enable or not F.db.AutoQueue end,
+                    args = {
+                        WhisperMessage = {
+                            order = 41,
+                            name = L["Whisper Message"],
+                            type = 'toggle',
+                        },
+                        BNWhisperMessage = {
+                            order = 42,
+                            name = L["Battle.net Whisper Message"],
+                            type = 'toggle',
+                        },
+                        GroupMessage = {
+                            order = 43,
+                            name = L["Group Message"],
+                            type = 'toggle',
+                        },
+                    },
                 },
             },
         },

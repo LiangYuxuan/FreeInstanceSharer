@@ -33,6 +33,7 @@ local SetDungeonDifficultyID = SetDungeonDifficultyID
 local SetLegacyRaidDifficultyID = SetLegacyRaidDifficultyID
 local SetRaidDifficultyID = SetRaidDifficultyID
 local SetSavedInstanceExtend = SetSavedInstanceExtend
+local UnitIsDND = UnitIsDND
 local UnitPosition = UnitPosition
 
 local tContains = tContains
@@ -77,6 +78,7 @@ local defaultConfig = {
     ["StopDC"] = false, -- Stop disconnecting
     ["Debug"] = false, -- Debug mode
     ["AutoExtend"] = true, -- Auto extend saved instances
+    ["DNDMessage"] = true, -- Use DND message
     ["InviteOnWhisper"] = true, -- Invite when received preset whisper message
     ["InviteOnWhisperMsg"] = "123", -- Preset whisper message
     ["InviteOnBNWhisper"] = true, -- Invite when received preset Battle.net whisper message
@@ -87,6 +89,10 @@ local defaultConfig = {
     ["LeaveQueueOnWhisperMsg"] = "233", -- Preset whisper message
     ["TimeLimit"] = 30, -- Max time to wait for players to enter instances
     ["AutoLeave"] = true, -- Auto leave party when players are in instances
+    ["WhisperMessage"] = true, -- Allow whisper message
+    ["BNWhisperMessage"] = true, -- Allow Battle.net whisper message
+    ["GroupMessage"] = true, -- Allow in group message
+    ["DNDMsg"] = L["Current length of queue: QLEN."], -- DND Message
     ["EnterQueueMsg"] = L["You're queued. Position in queue: QCURR."], -- Message when entering queue
     ["QueryQueueMsg"] = L["You're queued. Position in queue: QCURR."], -- Message when quering the positon in queue
     ["LeaveQueueMsg"] = ERR_LFG_LEFT_QUEUE, -- Message when leaving queue
@@ -239,6 +245,14 @@ end
 function F:SendMessage(text, chatType, channel, currIndex)
     if not text or text == '' then return end
 
+    if chatType == 'WHISPER' and not self.db.WhisperMessage then
+        return
+    elseif chatType == 'BNWHISPER' and not self.db.BNWhisperMessage then
+        return
+    elseif (chatType == 'SMART' or chatType == 'RAID' or chatType == 'PARTY') and not self.db.GroupMessage then
+        return
+    end
+
     text = gsub(text, 'QCURR', currIndex or 0)
     text = gsub(text, 'QLEN', #self.queue)
     text = gsub(text, 'MTIME', self.db.TimeLimit == 0 and UNLIMITED or self.db.TimeLimit)
@@ -257,6 +271,18 @@ function F:SendMessage(text, chatType, channel, currIndex)
     end
 
     return SendChatMessage(text, chatType, nil, channel)
+end
+
+function F:UpdateDNDMessage()
+    if self.db.DNDMessage then
+        self:SendChatMessage(self.db.DNDMsg, 'DND')
+    end
+end
+
+function F:RemoveDNDStatus()
+    if UnitIsDND('player') then
+        SendChatMessage('', 'DND')
+    end
 end
 
 function F:OnInitialize()
@@ -314,45 +340,54 @@ function F:OnEnable()
     self.status = STATUS_INIT
     self.queue = {}
 
+    self:RemoveDNDStatus()
+
     if self.db.Enable then
         self:RegisterEvent('UPDATE_INSTANCE_INFO')
         self:RegisterBucketEvent('PLAYER_ENTERING_WORLD', 1, RequestRaidInfo)
         RequestRaidInfo()
     else
         self:UnregisterAllEvents()
-    end
-
-    self:PrintStatus()
-end
-
-function F:Toggle()
-    if self.status ~= STATUS_IDLE then
-        self:Release()
-    end
-    self:UnregisterAllEvents()
-
-    if self.db.Enable then
-        self:RegisterEvent('UPDATE_INSTANCE_INFO')
-        self:RegisterEvent('PARTY_INVITE_REQUEST')
-
-        if self.db.StopDC then
-            self:RegisterEvent('PLAYER_CAMPING')
-        end
-        if self.db.InviteOnWhisper then
-            self:RegisterEvent('CHAT_MSG_WHISPER')
-        end
-        if self.db.InviteOnBNWhisper then
-            self:RegisterEvent('CHAT_MSG_BN_WHISPER')
-        end
-        if self.db.AutoQueue and not self.timer then
-            self.timer = self:ScheduleRepeatingTimer('FetchUpdate', .5)
-        end
-    else
         if self.timer then
             self:CancelTimer(self.timer)
             self.timer = nil
         end
     end
+
+    self:PrintStatus()
+end
+
+function F:Update()
+    self:UnregisterAllEvents()
+    if not self.db.Enable then return end
+
+    self:RegisterEvent('UPDATE_INSTANCE_INFO')
+    self:RegisterEvent('PARTY_INVITE_REQUEST')
+
+    if self.db.StopDC then
+        self:RegisterEvent('PLAYER_CAMPING')
+    end
+    if self.db.DNDMessage then
+        self:UpdateDNDMessage()
+    else
+        self:RemoveDNDStatus()
+    end
+    if self.db.InviteOnWhisper then
+        self:RegisterEvent('CHAT_MSG_WHISPER')
+    end
+    if self.db.InviteOnBNWhisper then
+        self:RegisterEvent('CHAT_MSG_BN_WHISPER')
+    end
+    if self.db.AutoQueue and not self.timer then
+        self.timer = self:ScheduleRepeatingTimer('FetchUpdate', .5)
+    end
+end
+
+function F:ReleaseAndUpdate()
+    if self.status ~= STATUS_IDLE then
+        self:Release()
+    end
+    self:Update()
 end
 
 function F:UPDATE_INSTANCE_INFO()
@@ -380,7 +415,7 @@ function F:UPDATE_INSTANCE_INFO()
     if self.status == STATUS_INIT then
         self.status = STATUS_IDLE
         self:PrintStatus()
-        self:Toggle()
+        self:Update()
     end
 end
 
@@ -453,7 +488,7 @@ function F:Leave(leaveMsg)
         return
     end
 
-    if not leaveMsg or leaveMsg == '' then
+    if not self.db.WhisperMessage or not leaveMsg or leaveMsg == '' then
         self:Release()
     end
 
@@ -486,6 +521,7 @@ function F:FetchUpdate()
             local name = self.queue[1]
             tremove(self.queue, 1)
             self:Invite(name)
+            self:UpdateDNDMessage()
         end
     elseif self.status == STATUS_INVITED then
         -- check max waiting time
@@ -569,6 +605,7 @@ function F:QueuePush(name)
     else
         self:SendMessage(self.db.QueryQueueMsg, 'WHISPER', name, playerIndex)
     end
+    self:UpdateDNDMessage()
 end
 
 -- remove a player from queue
@@ -582,6 +619,7 @@ function F:QueuePop(name, leaveQueueMsg)
         end
     end
     self:SendMessage(leaveQueueMsg, 'WHISPER', name)
+    self:UpdateDNDMessage()
 end
 
 function F:RecvChatMessage(text)
