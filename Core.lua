@@ -275,7 +275,7 @@ end
 
 function F:UpdateDNDMessage()
     if self.db.DNDMessage then
-        self:SendChatMessage(self.db.DNDMsg, 'DND')
+        self:SendMessage(self.db.DNDMsg, 'DND')
     end
 end
 
