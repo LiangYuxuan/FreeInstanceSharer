@@ -727,7 +727,7 @@ function F:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _, _
     local accountInfo = C_BattleNet_GetAccountInfoByID(presenceID)
     local gameAccountInfo = accountInfo.gameAccountInfo
     local characterName, realmName = gameAccountInfo.characterName, gameAccountInfo.realmName
-    self:Debug("Received character %s-%s", characterName, realmName)
+    self:Debug("Received character %s-%s", characterName or "UNKNOWN", realmName or "UNKNOWN")
 
     if characterName and characterName ~= '' and realmName and realmName ~= '' then
         local sender = characterName .. '-' .. realmName
