@@ -136,7 +136,7 @@ local supportedInstances = {
     -- Raid
     -- Vanilla
     [531] = { -- Temple of Ahn'Qiraj
-        [ACHIEVEMENTFRAME_FILTER_ALL .. ' ' .. BOSS_DEAD] = { low = 479, high = 511, diff = {14} }, -- ALL KILLED
+        [ACHIEVEMENTFRAME_FILTER_ALL .. ' ' .. BOSS_DEAD] = { low = 365, high = 511, diff = {14} }, -- ALL KILLED
     },
     -- The Burning Crusade
     [564] = { -- Black Temple
@@ -144,7 +144,7 @@ local supportedInstances = {
     },
     -- Wrath of the Lich King
     [603] = { -- Ulduar
-        [16] = { low = 3518, high = 122878, diff = {14} }, -- Yogg-Saron
+        [16] = { low = 2494, high = 122878, diff = {14} }, -- Yogg-Saron
     },
     [631] = { -- Icecrown Citadel
         [12] = { low = 2039, high = 2047, diff = {3, 4, 5, 6} }, -- The Lich King
@@ -177,6 +177,8 @@ local supportedInstances = {
         [6] = { low = 1676, high = 1676, diff = {3, 4, 5, 6} }, -- Ji-Kun
     },
     [1136] = { -- Siege of Orgrimmar
+        [5]  = { low = 17032, high = 17032, diff = {14, 15} }, -- Galakras
+        [12] = { low = 23468, high = 23486, diff = {14, 15} }, -- Siegecrafter Blackfuse
         [14] = { low = 23551, high = 23551, diff = {15} }, -- Garrosh Hellscream
     },
     -- Warlords of Draenor
@@ -188,7 +190,7 @@ local supportedInstances = {
     },
     -- Legion
     [1520] = { -- The Emerald Nightmare
-        [7] = { low = 119, high = 119, diff = {15} }, -- Xavius
+        [7] = { low = 119, high = 119, diff = {14, 15} }, -- Xavius
     },
     [1530] = { -- The Nighthold
         [10] = { low = 479, high = 991, diff = {14, 15} }, -- Gul'dan
@@ -197,9 +199,12 @@ local supportedInstances = {
         [5] = { low = 3, high = 51, diff = {14, 15} }, -- Mistress Sassz'ine
     },
     [1712] = { -- Antorus, the Burning Throne
-        [2] = { low = 128, high = 202, diff = {14, 15} }, -- Felhounds of Sargeras
+        [2] = { low = 128, high = 2015, diff = {14, 15} }, -- Felhounds of Sargeras
     },
     -- Battle for Azeroth
+    [1861] = { -- Uldir
+        [7] = { low = 246, high = 246, diff = {14, 15} }, -- Mythrax
+    },
     [2070] = { -- Battle of Dazar'alor
         [7] = { low = 863, high = 863, diff = {14, 15} }, -- High Tinker Mekkatorque
     },
