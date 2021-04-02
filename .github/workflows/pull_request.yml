@@ -19,9 +19,6 @@ jobs:
         uses: BigWigsMods/packager@master
         with:
           args: "-d -z"
-        env:
-          CF_API_KEY: ${{ secrets.CF_API_KEY }}
-          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/upload-artifact@master
         with:
