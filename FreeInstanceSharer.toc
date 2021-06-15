@@ -12,7 +12,7 @@
 ## X-WoWI-ID: 25931
 ## X-Wago-ID: WL6JeYNv
 
-Libs\load_libs.xml
+Libs\Libs.xml
 
 Init.lua
 Locales\Locales.xml
