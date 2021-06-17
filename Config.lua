@@ -11,6 +11,8 @@ local RequestRaidInfo = RequestRaidInfo
 
 local InterfaceOptionsFrame_OpenToCategory = InterfaceOptionsFrame_OpenToCategory
 
+local currentSelectBlacklist
+
 F.Options.args.config = {
     name = L["Open config"],
     guiHidden = true,
@@ -142,6 +144,42 @@ F.Options.args.General = {
                     order = 43,
                     name = L["Group Message"],
                     type = 'toggle',
+                },
+            },
+        },
+        Blacklist = {
+            order = 50,
+            name = L["Blacklist"],
+            type = 'group',
+            guiInline = true,
+            disabled = function() return not F.db.Enable end,
+            args = {
+                Add = {
+                    order = 51,
+                    name = ADD,
+                    type = 'input',
+                    get = function() end,
+                    set = function(_, value) F:QueuePop(value); tinsert(F.db.Blacklist, value) end,
+                },
+                List = {
+                    order = 52,
+                    name = IGNORE_LIST,
+                    type = 'select',
+                    get = function() return currentSelectBlacklist end,
+                    set = function(_, value) currentSelectBlacklist = value end,
+                    values = function()
+                        local result = {}
+                        for _, name in ipairs(F.db.Blacklist) do
+                            result[name] = name
+                        end
+                        return result
+                    end,
+                },
+                Delete = {
+                    order = 53,
+                    name = DELETE,
+                    type = 'execute',
+                    func = function() tDeleteItem(F.db.Blacklist, currentSelectBlacklist) end,
                 },
             },
         },
