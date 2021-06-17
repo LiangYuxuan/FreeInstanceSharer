@@ -12,6 +12,8 @@ ignore = {
 	-- "211", -- Unused local variable
 	"211/F", -- Unused local variable "F"
 	"211/L", -- Unused local variable "L"
+	"211/P", -- Unused local variable "P"
+	"211/G", -- Unused local variable "G"
 	"212", -- Unused argument
 	-- "213", -- Unused loop variable
 	-- "231", -- Set but never accessed
