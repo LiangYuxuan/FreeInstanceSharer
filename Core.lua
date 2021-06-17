@@ -1,4 +1,4 @@
-local F, L = unpack(select(2, ...))
+local F, L, P, G = unpack(select(2, ...))
 
 -- Lua functions
 local _G = _G
@@ -71,66 +71,6 @@ local STATUS_IDLE     = 1
 local STATUS_INVITING = 2
 local STATUS_INVITED  = 3
 local STATUS_LEAVING  = 4
-
-local defaultConfig = {
-    ["DBVer"] = 2, -- Database Version
-    ["Enable"] = false, -- Enable
-    ["StopDC"] = false, -- Stop disconnecting
-    ["Debug"] = false, -- Debug mode
-    ["AutoExtend"] = true, -- Auto extend saved instances
-    ["DNDMessage"] = true, -- Use DND message
-    ["InviteOnWhisper"] = true, -- Invite when received preset whisper message
-    ["InviteOnWhisperMsg"] = "123", -- Preset whisper message
-    ["InviteOnBNWhisper"] = true, -- Invite when received preset Battle.net whisper message
-    ["InviteOnBNWhisperMsg"] = "123", -- Preset Battle.net whisper message
-    ["BlacklistMaliciousUser"] = true, -- Add malicious user to blacklist and ignore further message
-    ["AutoQueue"] = true, -- Queue when more than one player try to get invited
-    ["LeaveQueueOnWhisper"] = true, -- Leave queue when received preset whisper message
-    ["LeaveQueueOnWhisperMsg"] = "233", -- Preset whisper message
-    ["TimeLimit"] = 30, -- Max time to wait for players to enter instances
-    ["AutoLeave"] = true, -- Auto leave party when players are in instances
-    ["WhisperMessage"] = true, -- Allow whisper message
-    ["BNWhisperMessage"] = true, -- Allow Battle.net whisper message
-    ["GroupMessage"] = true, -- Allow in group message
-    ["DNDMsg"] = L["Current length of queue: QLEN."], -- DND Message
-    ["EnterQueueMsg"] = L["You're queued. Position in queue: QCURR."], -- Message when entering queue
-    ["QueryQueueMsg"] = L["You're queued. Position in queue: QCURR."], -- Message when quering the positon in queue
-    ["LeaveQueueMsg"] = ERR_LFG_LEFT_QUEUE, -- Message when leaving queue
-    ["FetchErrorMsg"] = L["Failed to fetch your character information from Battle.net, please PM NAME."], -- Message when fail to fetch character name and realm from Battle.net
-    ["WelcomeMsg"] = L["MTIME second(s) to enter instance. Difficulty set to 25 players normal. Send '10/25/N/H' in party to change, 'leave' to leave, 'raid'/'party' to convert to raid/party."], -- Welcome message when player accepted invitation
-    ["TLELeaveMsg"] = L["Time Limit Exceeded. You're promoted to team leader."], -- Message before leaving party due to time limit exceeded
-    ["AutoLeaveMsg"] = L["You're promoted to team leader. Good luck!"], -- Message before leaving party due to player entered instance
-
-    ["DebugLog"] = {}, -- Debug message log
-    ["Blacklist"] = {}, -- User blacklist
-}
-
-local oldVerDBMap = {
-    { -- from nil to 1
-        ["debug"] = "Debug",
-        ["enable"] = "Enable",
-        ["preventAFK"] = "StopDC",
-        ["autoExtend"] = "AutoExtend",
-        ["autoInvite"] = "InviteOnWhisper",
-        ["autoInviteMsg"] = "InviteOnWhisperMsg",
-        ["autoInviteBN"] = "InviteOnBNWhisper",
-        ["autoInviteBNMsg"] = "InviteOnBNWhisperMsg",
-        ["autoLeave"] = "LeaveQueueOnWhisper",
-        ["autoLeaveMsg"] = "LeaveQueueOnWhisperMsg",
-        ["autoQueue"] = "AutoQueue",
-        ["maxWaitingTime"] = "TimeLimit",
-        ["enterQueueMsg"] = "EnterQueueMsg",
-        ["fetchErrorMsg"] = "FetchErrorMsg",
-        ["queryQueueMsg"] = "QueryQueueMsg",
-        ["leaveQueueMsg"] = "LeaveQueueMsg",
-        ["welcomeMsg"] = "WelcomeMsg",
-        ["leaveMsg"] = "AutoLeaveMsg",
-    },
-    { -- from 1 to 2
-        ["MaxWaitingTime"] = "TimeLimit",
-        ["LeaveMsg"] = "AutoLeaveMsg"
-    },
-}
 
 local supportedInstances = {
     -- Raid
@@ -290,57 +230,7 @@ function F:RemoveDNDStatus()
     end
 end
 
-function F:OnInitialize()
-    if not FISConfig then
-        FISConfig = defaultConfig
-    else
-        -- old database version fallback
-        if not FISConfig.DBVer then
-            -- old database before v8.2.5
-            local backup = FISConfig
-            for key, value in pairs(oldVerDBMap[1]) do
-                FISConfig[value] = backup[key]
-            end
-        elseif FISConfig.DBVer == 1 then
-            -- old database before v8.2.6
-            local backup = FISConfig
-            for key, value in pairs(oldVerDBMap[2]) do
-                FISConfig[value] = backup[key]
-            end
-        end
-        FISConfig.DBVer = 2
-        -- handle deprecated
-        for key in pairs(FISConfig) do
-            if type(defaultConfig[key]) == 'nil' then
-                FISConfig[key] = nil
-            end
-        end
-        -- apply default value
-        for key, value in pairs(defaultConfig) do
-            if type(FISConfig[key]) == 'nil' then
-                FISConfig[key] = value
-            end
-        end
-    end
-    self.db = FISConfig
-
-    -- clean up old logs
-    local maxSessionID = 0
-    for sessionID in pairs(self.db.DebugLog) do
-        if sessionID > maxSessionID then
-            maxSessionID = sessionID
-        end
-    end
-    for sessionID in pairs(self.db.DebugLog) do
-        if sessionID < maxSessionID - 2 then
-            self.db.DebugLog[sessionID] = nil
-        end
-    end
-
-    self.currSession = maxSessionID + 1
-end
-
-function F:OnEnable()
+function F:Initialize()
     self:Release()
     self.status = STATUS_INIT
     self.queue = {}
