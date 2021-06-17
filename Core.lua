@@ -3,7 +3,7 @@ local F, L, P, G = unpack(select(2, ...))
 -- Lua functions
 local _G = _G
 local bit_band, bit_bor, format, gsub, ipairs, pairs, select = bit.band, bit.bor, format, gsub, ipairs, pairs, select
-local strfind, strlower, tinsert, tonumber, tremove, type = strfind, strlower, tinsert, tonumber, tremove, type
+local strfind, strlower, tinsert, tonumber, tremove = strfind, strlower, tinsert, tonumber, tremove
 
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
