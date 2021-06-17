@@ -16,6 +16,7 @@ setmetatable(L, {
     end
 })
 F.DF = { profile = {}, global = {} }
+F.Options = { name = L["Free Instance Sharer"], type = 'group', args = {} }
 
 Engine[1] = F
 Engine[2] = L
