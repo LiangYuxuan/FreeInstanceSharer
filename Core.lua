@@ -175,14 +175,14 @@ local supportedInstances = {
 
 -- print current status and config to chatframe
 function F:PrintStatus()
-    if self.db.Enable then
-        if self.status == STATUS_INIT then
-            self:Print(LIGHTYELLOW_FONT_COLOR_CODE .. LFG_LIST_LOADING .. FONT_COLOR_CODE_CLOSE)
-        else
-            self:Print(GREEN_FONT_COLOR_CODE .. START .. FONT_COLOR_CODE_CLOSE .. SOCIAL_SHARE_TEXT)
-        end
-    else
+    if not self.db.Enable then
         self:Print(RED_FONT_COLOR_CODE .. SLASH_STOPWATCH_PARAM_STOP1 .. FONT_COLOR_CODE_CLOSE .. SOCIAL_SHARE_TEXT)
+    elseif self.status == STATUS_INIT then
+        self:Print(LIGHTYELLOW_FONT_COLOR_CODE .. LFG_LIST_LOADING .. FONT_COLOR_CODE_CLOSE)
+    elseif self.db.AutoQueue and self.pausedQueue then
+        self:Print(LIGHTYELLOW_FONT_COLOR_CODE .. SLASH_STOPWATCH_PARAM_PAUSE1 .. FONT_COLOR_CODE_CLOSE)
+    else
+        self:Print(GREEN_FONT_COLOR_CODE .. START .. FONT_COLOR_CODE_CLOSE .. SOCIAL_SHARE_TEXT)
     end
 end
 
@@ -228,6 +228,11 @@ function F:RemoveDNDStatus()
     if UnitIsDND('player') then
         SendChatMessage('', 'DND')
     end
+end
+
+function F:TogglePause(pausedQueue)
+    self.pausedQueue = pausedQueue
+    self:PrintStatus()
 end
 
 function F:Initialize()
@@ -413,6 +418,8 @@ end
 
 function F:FetchUpdate()
     if self.status == STATUS_IDLE then
+        if self.pausedQueue then return end
+
         -- check queue
         if #self.queue > 0 then
             local name = self.queue[1]

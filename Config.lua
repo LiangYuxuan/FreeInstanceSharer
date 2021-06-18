@@ -110,16 +110,26 @@ F.Options.args.General = {
                     name = L["Leave Queue on Whisper"],
                     type = 'toggle',
                 },
-                TimeLimit = {
+                AutoLeave = {
                     order = 33,
+                    name = L["Auto Leave Party"],
+                    type = 'toggle',
+                },
+                TimeLimit = {
+                    order = 34,
                     name = L["Time Limit (s)"],
                     type = 'range',
                     min = 0, max = 120, step = 1,
                 },
-                AutoLeave = {
-                    order = 34,
-                    name = L["Auto Leave Party"],
-                    type = 'toggle',
+                Pause = {
+                    order = 36,
+                    name = function()
+                        return not F.pausedQueue and SLASH_STOPWATCH_PARAM_PAUSE1 or CONTINUE
+                    end,
+                    type = 'execute',
+                    func = function()
+                        F:TogglePause(not F.pausedQueue)
+                    end,
                 },
             },
         },
