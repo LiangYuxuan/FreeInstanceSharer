@@ -29,10 +29,6 @@ F.playerFullName = UnitName('player') .. '-' .. GetRealmName()
 F.playerGUID = UnitGUID('player')
 
 function F:OnEnable()
-    F:Initialize()
-end
-
-function F:OnInitialize()
     self.data = LibStub('AceDB-3.0'):New('FreeInstanceSharerDB', self.DF, true)
 
     -- Depreciated: Will be removed in next tier
@@ -60,6 +56,8 @@ function F:OnInitialize()
     self.global.DebugLog[1] = self.global.DebugLog[2]
     self.global.DebugLog[2] = self.global.DebugLog[3]
     self.global.DebugLog[3] = {}
+
+    self:Initialize()
 end
 
 function F:Print(...)
