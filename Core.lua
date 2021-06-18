@@ -268,6 +268,7 @@ function F:Update()
         self:RegisterEvent('PLAYER_CAMPING')
     end
     if self.db.DNDMessage then
+        self:RegisterEvent('PLAYER_FLAGS_CHANGED')
         self:UpdateDNDMessage()
     else
         self:RemoveDNDStatus()
@@ -327,11 +328,17 @@ function F:PARTY_INVITE_REQUEST(_, name)
 end
 
 function F:PLAYER_CAMPING()
-    self:UpdateDNDMessage()
-
     local dialogName = StaticPopup_Visible('CAMP')
     if dialogName then
         StaticPopup_Hide('CAMP')
+    end
+end
+
+function F:PLAYER_FLAGS_CHANGED(_, unitID)
+    if unitID ~= 'player' then return end
+
+    if not UnitIsDND('player') then
+        self:UpdateDNDMessage()
     end
 end
 
