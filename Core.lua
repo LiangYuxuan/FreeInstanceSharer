@@ -322,6 +322,8 @@ function F:PARTY_INVITE_REQUEST(_, name)
 end
 
 function F:PLAYER_CAMPING()
+    self:UpdateDNDMessage()
+
     local dialogName = StaticPopup_Visible('CAMP')
     if dialogName then
         StaticPopup_Hide('CAMP')
