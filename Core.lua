@@ -355,6 +355,7 @@ function F:Invite(name)
 
     if self.db.AutoQueue then
         self.status = STATUS_INVITING
+        self.inviteTime = GetTime()
         self:RegisterEvent('GROUP_ROSTER_UPDATE')
     end
 
@@ -427,11 +428,18 @@ function F:FetchUpdate()
             self:Invite(name)
             self:UpdateDNDMessage()
         end
+    elseif self.status == STATUS_INVITING then
+        local elapsed = GetTime() - self.inviteTime
+        if self.db.InviteTimeLimit ~= 0 and elapsed >= self.db.InviteTimeLimit then
+            self:Debug("Leaving party: Invite Time Limit Exceeded")
+            self:Release()
+            return
+        end
     elseif self.status == STATUS_INVITED then
         -- check max waiting time
         local elapsed = GetTime() - self.invitedTime
         if self.db.TimeLimit ~= 0 and elapsed >= self.db.TimeLimit then
-            self:Debug("Leaving party: Time Limit Exceeded")
+            self:Debug("Leaving party: Enter Time Limit Exceeded")
             self:Leave(self.db.TLELeaveMsg)
             return
         end

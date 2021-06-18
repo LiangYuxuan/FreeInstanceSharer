@@ -115,9 +115,17 @@ F.Options.args.General = {
                     name = L["Auto Leave Party"],
                     type = 'toggle',
                 },
-                TimeLimit = {
+                InviteTimeLimit = {
                     order = 34,
-                    name = L["Time Limit (s)"],
+                    name = L["Invite Time Limit (s)"],
+                    desc = L["Time limit for user to accept invitation. If set to zero, no time limit is imposed."],
+                    type = 'range',
+                    min = 0, max = 60, step = 1,
+                },
+                TimeLimit = {
+                    order = 35,
+                    name = L["Enter Time Limit (s)"],
+                    desc = L["Time limit for user to enter instance. If set to zero, no time limit is imposed."],
                     type = 'range',
                     min = 0, max = 120, step = 1,
                 },
