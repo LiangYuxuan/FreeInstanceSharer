@@ -504,13 +504,7 @@ end
 function F:QueuePush(name)
     self:Debug("Adding %s to queue", name)
 
-    local playerIndex
-    for index, playerName in ipairs(self.queue) do
-        if playerName == name then
-            playerIndex = index
-            break
-        end
-    end
+    local playerIndex = self:QueueQuery(name)
     if not playerIndex then
         tinsert(self.queue, name)
         self:SendMessage(self.db.EnterQueueMsg, 'WHISPER', name, #self.queue)
@@ -524,14 +518,24 @@ end
 function F:QueuePop(name, leaveQueueMsg)
     self:Debug("Removing %s from queue", name)
 
-    for index, playerName in pairs(self.queue) do
-        if playerName == name then
-            tremove(self.queue, index)
-            break
-        end
+    local playerIndex = self:QueueQuery(name)
+    if playerIndex then
+        tremove(self.queue, playerIndex)
     end
     self:SendMessage(leaveQueueMsg, 'WHISPER', name)
     self:UpdateDNDMessage()
+end
+
+-- query a player in queue
+function F:QueueQuery(name)
+    local playerIndex
+    for index, playerName in ipairs(self.queue) do
+        if playerName == name then
+            playerIndex = index
+            break
+        end
+    end
+    return playerIndex
 end
 
 function F:RecvChatMessage(text)
