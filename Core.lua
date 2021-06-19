@@ -398,7 +398,7 @@ function F:Leave(leaveMsg)
         return
     end
 
-    if not self.db.WhisperMessage or not leaveMsg or leaveMsg == '' then
+    if not self.db.GroupMessage or not leaveMsg or leaveMsg == '' then
         self:Release()
     end
 
