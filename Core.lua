@@ -268,7 +268,7 @@ function F:Update()
         self:RegisterEvent('PLAYER_CAMPING')
     end
     if self.db.DNDMessage then
-        self:RegisterEvent('PLAYER_FLAGS_CHANGED')
+        self:RegisterEvent('CHAT_MSG_SYSTEM')
         self:UpdateDNDMessage()
     else
         self:RemoveDNDStatus()
@@ -334,10 +334,8 @@ function F:PLAYER_CAMPING()
     end
 end
 
-function F:PLAYER_FLAGS_CHANGED(_, unitID)
-    if unitID ~= 'player' then return end
-
-    if not UnitIsDND('player') then
+function F:CHAT_MSG_SYSTEM(_, text)
+    if strfind(text, MARKED_AFK) then
         self:UpdateDNDMessage()
     end
 end
