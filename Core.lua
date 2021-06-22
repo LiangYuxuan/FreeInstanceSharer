@@ -240,8 +240,6 @@ function F:Initialize()
     self.status = STATUS_INIT
     self.queue = {}
 
-    self:RemoveDNDStatus()
-
     if self.db.Enable then
         self:RegisterEvent('UPDATE_INSTANCE_INFO')
         self:RegisterBucketEvent('PLAYER_ENTERING_WORLD', 1, RequestRaidInfo)
@@ -253,6 +251,8 @@ function F:Initialize()
             self.timer = nil
         end
     end
+
+    self:RemoveDNDStatus()
 
     self:PrintStatus()
 end
