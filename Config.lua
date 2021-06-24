@@ -5,11 +5,18 @@ local AceConfigDialog = LibStub('AceConfigDialog-3.0')
 
 -- Lua functions
 local _G = _G
+local ipairs, pairs, tinsert = ipairs, pairs, tinsert
 
 -- WoW API / Variables
 local RequestRaidInfo = RequestRaidInfo
 
 local InterfaceOptionsFrame_OpenToCategory = InterfaceOptionsFrame_OpenToCategory
+local tDeleteItem = tDeleteItem
+
+local CONTINUE = CONTINUE
+local SLASH_STOPWATCH_PARAM_PAUSE1 = SLASH_STOPWATCH_PARAM_PAUSE1
+
+-- GLOBALS: LibStub
 
 local currentSelectBlacklist
 

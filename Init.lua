@@ -3,9 +3,11 @@ local F = LibStub('AceAddon-3.0'):NewAddon(addon, 'AceEvent-3.0', 'AceTimer-3.0'
 
 -- Lua functions
 local _G = _G
-local date, format, tinsert = date, format, tinsert
+local date, format, pairs, tinsert, type = date, format, pairs, tinsert, type
 
 -- WoW API / Variables
+
+-- GLOBALS: FISConfig, LibStub
 
 local L = {}
 setmetatable(L, {
