@@ -593,18 +593,11 @@ do
     local lastMessageTime = {}
     local lastMessageCount = {}
 
-    -- override point for FreeInstanceSharer_DynamicWhisper
-    function F:IsInviteOnWhisperMsg(_, text)
-        return text == self.db.InviteOnWhisperMsg
-    end
-
-    function F:CHAT_MSG_WHISPER(_, text, sender)
-        self:Debug("Received whisper '%s' from %s", text, sender)
-
+    function F:DetectMaliciousUser(sender)
         if self.db.BlacklistMaliciousUser then
             if tContains(self.db.Blacklist, sender) then
                 self:Debug("Ignored whisper from malicious user %s", sender)
-                return
+                return true
             end
 
             -- rule: 5 messages within 2 seconds
@@ -617,7 +610,7 @@ do
 
                     self:QueuePop(sender)
                     tinsert(self.db.Blacklist, sender)
-                    return
+                    return true
                 end
             else
                 -- reset count after 2 seconds
@@ -627,6 +620,17 @@ do
             lastMessageTime[sender] = now
             lastMessageCount[sender] = (lastMessageCount[sender] or 0) + 1
         end
+    end
+
+    -- override point for FreeInstanceSharer_DynamicWhisper
+    function F:IsInviteOnWhisperMsg(_, text)
+        return text == self.db.InviteOnWhisperMsg
+    end
+
+    function F:CHAT_MSG_WHISPER(_, text, sender)
+        self:Debug("Received whisper '%s' from %s", text, sender)
+
+        if self:DetectMaliciousUser(sender) then return end
 
         if self.db.InviteOnWhisper and self:IsInviteOnWhisperMsg(sender, text) then
             if not self.db.AutoQueue then
