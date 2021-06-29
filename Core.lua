@@ -72,7 +72,7 @@ local STATUS_INVITING = 2
 local STATUS_INVITED  = 3
 local STATUS_LEAVING  = 4
 
-local supportedInstances = {
+F.supportedInstances = {
     -- Raid
     -- Vanilla
     [531] = { -- Temple of Ahn'Qiraj
@@ -302,8 +302,8 @@ function F:UPDATE_INSTANCE_INFO()
             local instanceID, bossList = link:match(':(%d+):%d+:(%d+)\124h')
             instanceID = tonumber(instanceID)
             bossList = tonumber(bossList)
-            if not extended and supportedInstances[instanceID] then
-                for _, tbl in pairs(supportedInstances[instanceID]) do
+            if not extended and self.supportedInstances[instanceID] then
+                for _, tbl in pairs(self.supportedInstances[instanceID]) do
                     if tContains(tbl.diff, difficulty) and bit_band(bossList, tbl.low) == tbl.low and bit_bor(bossList, tbl.high) == tbl.high then
                         SetSavedInstanceExtend(i, true)
                         break
@@ -452,11 +452,9 @@ function F:FetchUpdate()
         -- check player place
         if self.db.AutoLeave then
             local instanceID = select(4, UnitPosition('party1'))
-            if instanceID and supportedInstances[instanceID] then
+            if instanceID and self.supportedInstances[instanceID] then
                 self:Debug("Leaving party: Player entered instance %d", instanceID)
-                -- disable alt leave message feature for now (icc no longer available)
-                -- self:Leave(self.db['AutoLeaveMsg' .. instanceID] or self.db.AutoLeaveMsg)
-                self:Leave(self.db.AutoLeaveMsg)
+                self:Leave(self.db['AutoLeaveMsg' .. instanceID] or self.db.AutoLeaveMsg)
                 return
             end
         end
