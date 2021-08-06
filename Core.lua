@@ -76,7 +76,7 @@ F.supportedInstances = {
     -- Raid
     -- Vanilla
     [531] = { -- Temple of Ahn'Qiraj
-        [ACHIEVEMENTFRAME_FILTER_ALL .. ' ' .. BOSS_DEAD] = { low = 365, high = 511, diff = {14} }, -- ALL KILLED
+        [ACHIEVEMENTFRAME_FILTER_ALL .. ' ' .. BOSS_DEAD] = { low = 429, high = 511, diff = {14} }, -- ALL KILLED
     },
     -- The Burning Crusade
     [564] = { -- Black Temple
