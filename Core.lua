@@ -84,7 +84,7 @@ F.supportedInstances = {
     },
     -- Wrath of the Lich King
     [603] = { -- Ulduar
-        [16] = { low = 2494, high = 122878, diff = {14} }, -- Yogg-Saron
+        [16] = { low = 2494, high = 122879, diff = {14} }, -- Yogg-Saron
     },
     [631] = { -- Icecrown Citadel
         [12] = { low = 2039, high = 2047, diff = {3, 4, 5, 6} }, -- The Lich King
