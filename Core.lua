@@ -148,6 +148,10 @@ F.supportedInstances = {
     [2070] = { -- Battle of Dazar'alor
         [7] = { low = 863, high = 863, diff = {14, 15} }, -- High Tinker Mekkatorque
     },
+    -- Shadowlands
+    [2450] = { -- Sanctum of Domination
+        [3] = { low = 66, high = 66, diff = {14, 15} }, -- The Nine
+    },
 
     -- Dungeon
     -- Legion
@@ -168,9 +172,12 @@ F.supportedInstances = {
         [4] = { low = 208, high = 208, diff = {23} }, -- HK-8 Aerial Oppression Unit
     },
     -- Shadowlands
-    -- [2286] = { -- The Necrotic Wake
-    --     [4] = { low = 7, high = 7, diff = {23} }, -- Nalthor the Rimebinder
-    -- },
+    [2286] = { -- The Necrotic Wake
+        [4] = { low = 7, high = 7, diff = {23} }, -- Nalthor the Rimebinder
+    },
+    [2441] = { -- Tazavesh, the Veiled Market
+        [4] = { low = 127, high = 127, diff = {23} }, -- So'leah
+    },
 }
 
 -- print current status and config to chatframe
