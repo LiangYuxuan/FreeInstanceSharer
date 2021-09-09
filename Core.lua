@@ -310,16 +310,23 @@ function F:UPDATE_INSTANCE_INFO()
             instanceID = tonumber(instanceID)
             bossList = tonumber(bossList)
             if not extended and self.supportedInstances[instanceID] then
-                for _, tbl in pairs(self.supportedInstances[instanceID]) do
-                    if tContains(tbl.diff, difficulty) then
-                        if bit_band(bossList, tbl.low) == tbl.low and bit_bor(bossList, tbl.high) == tbl.high then
+                local corrupted
+                for _, data in pairs(self.supportedInstances[instanceID]) do
+                    if tContains(data.diff, difficulty) then
+                        if bit_band(bossList, data.low) == data.low and bit_bor(bossList, data.high) == data.high then
                             SetSavedInstanceExtend(i, true)
+                            corrupted = nil
+                            break
                         else
-                            -- corrupted lockout
-                            F:Print(L["Detected corrupted lockout %s, skip auto extend."], link)
+                            -- difficulty match & progress not match
+                            corrupted = true
                         end
-                        break
                     end
+                end
+
+                if corrupted then
+                    -- corrupted lockout
+                    F:Print(L["Detected corrupted lockout %s, skip auto extend."], link)
                 end
             end
         end
