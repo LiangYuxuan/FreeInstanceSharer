@@ -133,7 +133,7 @@ F.supportedInstances = {
         [7] = { low = 119, high = 119, diff = {14, 15} }, -- Xavius
     },
     [1530] = { -- The Nighthold
-        [10] = { low = 479, high = 991, diff = {14, 15} }, -- Gul'dan
+        [10] = { low = 258, high = 991, diff = {14, 15} }, -- Gul'dan
     },
     [1676] = { -- Tomb of Sargeras
         [5] = { low = 3, high = 51, diff = {14, 15} }, -- Mistress Sassz'ine
