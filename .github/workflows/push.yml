@@ -1,4 +1,4 @@
-name: build
+name: Build
 
 on:
   push:
@@ -21,6 +21,11 @@ jobs:
         with:
           args: "--no-color -q"
           annotate: warning
+
+      - name: Find globals
+        uses: LiangYuxuan/action-findglobals@v1
+        with:
+          find-args: "! -path \"./Libs/*\""
 
       - name: Update CurseForge Translations
         uses: LiangYuxuan/action-wowace-localization-import@master
