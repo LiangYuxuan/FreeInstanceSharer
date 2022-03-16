@@ -14,6 +14,7 @@ local C_PartyInfo_ConfirmLeaveParty = C_PartyInfo.ConfirmLeaveParty
 local C_PartyInfo_ConvertToParty = C_PartyInfo.ConvertToParty
 local C_PartyInfo_GetInviteReferralInfo = C_PartyInfo.GetInviteReferralInfo
 local GetDifficultyInfo = GetDifficultyInfo
+local GetDungeonDifficultyID = GetDungeonDifficultyID
 local GetInviteConfirmationInfo = GetInviteConfirmationInfo
 local GetLegacyRaidDifficultyID = GetLegacyRaidDifficultyID
 local GetNumGroupMembers = GetNumGroupMembers
@@ -50,6 +51,7 @@ local DifficultyUtil_ID_Raid10Heroic = DifficultyUtil.ID.Raid10Heroic
 local DifficultyUtil_ID_Raid10Normal = DifficultyUtil.ID.Raid10Normal
 local DifficultyUtil_ID_Raid25Heroic = DifficultyUtil.ID.Raid25Heroic
 local DifficultyUtil_ID_Raid25Normal = DifficultyUtil.ID.Raid25Normal
+local DifficultyUtil_ID_DungeonHeroic = DifficultyUtil.ID.DungeonHeroic
 local DifficultyUtil_ID_DungeonMythic = DifficultyUtil.ID.DungeonMythic
 local ERR_RAID_DIFFICULTY_CHANGED_S = ERR_RAID_DIFFICULTY_CHANGED_S
 local FONT_COLOR_CODE_CLOSE = FONT_COLOR_CODE_CLOSE
@@ -569,6 +571,11 @@ function F:RecvChatMessage(text)
     elseif strfind(text, 'party') then
         return C_PartyInfo_ConvertToParty()
     end
+
+    local DungeonDifficulty = GetDungeonDifficultyID()
+    local isHeroicDungeon = DungeonDifficulty == DifficultyUtil_ID_DungeonHeroic
+    isHeroicDungeon = (isHeroicDungeon or strfind(text, 'h')) and not strfind(text, 'n')
+    SetDungeonDifficultyID(isHeroicDungeon and DifficultyUtil_ID_DungeonHeroic or DifficultyUtil_ID_DungeonMythic)
 
     local RaidDifficulty = GetRaidDifficultyID()
     local LegacyRaidDifficulty = GetLegacyRaidDifficultyID()
