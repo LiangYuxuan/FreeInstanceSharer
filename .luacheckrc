@@ -37954,7 +37954,6 @@ read_globals = {
 	"CompactUnitFrame_UtilSetDebuff",
 	"CompactUnitFrame_UtilSetDispelDebuff",
 	"CompactUnitFrame_UtilShouldDisplayBuff",
-	"CompactUnitFrame_Util_IsBossAura",
 	"CompactUnitFrame_Util_IsPriorityDebuff",
 	"CompactUnitFrame_Util_ShouldDisplayDebuff",
 	"CompareFunctionReturns",
