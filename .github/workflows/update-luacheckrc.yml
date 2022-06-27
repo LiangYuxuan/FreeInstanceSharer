@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
 
       - name: Generate new .luacheckrc
-        uses: LiangYuxuan/action-generate-luacheckrc@v1
+        uses: LiangYuxuan/action-generate-luacheckrc@v2
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v3
