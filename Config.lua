@@ -9,8 +9,9 @@ local ipairs, pairs, tinsert = ipairs, pairs, tinsert
 
 -- WoW API / Variables
 local RequestRaidInfo = RequestRaidInfo
+local Settings_OpenToCategory = Settings.OpenToCategory
 
-local InterfaceOptionsFrame_OpenToCategory = InterfaceOptionsFrame_OpenToCategory
+local HideUIPanel = HideUIPanel
 local tDeleteItem = tDeleteItem
 
 local CONTINUE = CONTINUE
@@ -328,17 +329,18 @@ function C:OnEnable()
     F.Options.args.Profiles = LibStub('AceDBOptions-3.0'):GetOptionsTable(F.data)
 
     AceConfig:RegisterOptionsTable('FreeInstanceSharer', F.Options, 'fis')
-    self.firstGroup = AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Free Instance Sharer"], nil, 'General')
+    local _, configFrameName AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Free Instance Sharer"], nil, 'General')
     AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Notify Message"], L["Free Instance Sharer"], 'Message')
     AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Plugins"], L["Free Instance Sharer"], 'Plugins')
-    self.lastGroup = AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Profiles"], L["Free Instance Sharer"], 'Profiles')
+    AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Profiles"], L["Free Instance Sharer"], 'Profiles')
+
+    self.configFrameName = configFrameName
 end
 
 function C:ShowConfig()
-    if _G.InterfaceOptionsFrame:IsShown() then
-        _G.InterfaceOptionsFrame:Hide()
+    if _G.SettingsPanel:IsShown() then
+        HideUIPanel(_G.SettingsPanel)
     else
-        InterfaceOptionsFrame_OpenToCategory(self.lastGroup)
-        InterfaceOptionsFrame_OpenToCategory(self.firstGroup)
+        Settings_OpenToCategory(self.configFrameName)
     end
 end
