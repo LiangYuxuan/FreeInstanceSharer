@@ -329,7 +329,7 @@ function C:OnEnable()
     F.Options.args.Profiles = LibStub('AceDBOptions-3.0'):GetOptionsTable(F.data)
 
     AceConfig:RegisterOptionsTable('FreeInstanceSharer', F.Options, 'fis')
-    local _, configFrameName AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Free Instance Sharer"], nil, 'General')
+    local _, configFrameName = AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Free Instance Sharer"], nil, 'General')
     AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Notify Message"], L["Free Instance Sharer"], 'Message')
     AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Plugins"], L["Free Instance Sharer"], 'Plugins')
     AceConfigDialog:AddToBlizOptions('FreeInstanceSharer', L["Profiles"], L["Free Instance Sharer"], 'Profiles')
