@@ -1,4 +1,4 @@
-## Interface: 90207
+## Interface: 100000
 ## Title: |cff1572cfFree Instance Sharer|r
 ## Title-zhCN: |cff1572cf便利CD分享|r
 ## Notes: Simply sharing your saved instance to others.
