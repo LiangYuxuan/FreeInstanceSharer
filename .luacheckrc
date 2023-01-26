@@ -41412,6 +41412,7 @@ read_globals = {
 	"EncounterJournalSearchBox_OnUpdate",
 	"EncounterJournal_AJ_OnUpdate",
 	"EncounterJournal_CheckAndDisplayLootTab",
+	"EncounterJournal_CheckAndDisplayTradingPostTab",
 	"EncounterJournal_CleanBullets",
 	"EncounterJournal_ClearChildHeaders",
 	"EncounterJournal_ClearDetails",
