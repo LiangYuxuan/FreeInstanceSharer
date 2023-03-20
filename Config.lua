@@ -1,4 +1,4 @@
-local F, L, P, G = unpack(select(2, ...))
+local F, L, P, G = unpack((select(2, ...)))
 local C = F:NewModule('Config')
 local AceConfig = LibStub('AceConfig-3.0')
 local AceConfigDialog = LibStub('AceConfigDialog-3.0')
