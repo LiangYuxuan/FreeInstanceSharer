@@ -1,4 +1,4 @@
-## Interface: 100007
+## Interface: 100100
 ## Title: |cff1572cfFree Instance Sharer|r
 ## Title-zhCN: |cff1572cf便利CD分享|r
 ## Notes: Simply sharing your saved instance to others.
@@ -7,6 +7,7 @@
 ## Version: @project-version@
 ## SavedVariables: FreeInstanceSharerDB
 ## SavedVariablesPerCharacter: FISConfig
+## IconTexture: Interface\AddOns\FreeInstanceSharer\Icon.png
 ## X-ReleaseDate: @project-date-iso@
 ## X-License: MIT
 ## X-Curse-Project-ID: 319097
