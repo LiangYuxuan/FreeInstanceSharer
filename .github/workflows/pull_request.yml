@@ -27,5 +27,5 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: pull-request-${{ github.head_ref }}-${{ github.event.number }}
+          name: pull-request-${{ github.event.number }}-${{ github.sha }}
           path: .release/
