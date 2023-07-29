@@ -41708,6 +41708,7 @@ read_globals = {
 	"EJTierDropDown_OnLoad",
 	"EJ_ContentTab_OnClick",
 	"EJ_ContentTab_Select",
+	"EJ_ContentTab_SelectAppropriateInstanceTab",
 	"EJ_ContentTab_SetEnabled",
 	"EJ_HideLootJournalPanel",
 	"EJ_HideNonInstancePanels",
