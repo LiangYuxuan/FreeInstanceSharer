@@ -18,7 +18,7 @@ jobs:
         uses: LiangYuxuan/action-generate-luacheckrc@master
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
           title: Update .luacheckrc
           commit-message: "test: update .luacheckrc"
