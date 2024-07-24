@@ -154,6 +154,16 @@ F.supportedInstances = {
     [2450] = { -- Sanctum of Domination
         [3] = { low = 66, high = 66, diff = {14, 15} }, -- The Nine
     },
+    -- Dragonflight
+    [2522] = { -- Vault of the Incarnates
+        [8] = { low = 239, high = 239, diff = {14, 15} }, -- Raszageth the Storm-Eater
+    },
+    [2569] = { -- Aberrus, the Shadowed Crucible
+        [9] = { low = 495, high = 495, diff = {14, 15} }, -- Scalecommander Sarkareth
+    },
+    [2549] = { -- Amirdrassil, the Dream's Hope
+        [9] = { low = 510, high = 510, diff = {14, 15} }, -- Fyrakk the Blazing
+    },
 
     -- Dungeon
     -- Legion
@@ -179,6 +189,10 @@ F.supportedInstances = {
     },
     [2441] = { -- Tazavesh, the Veiled Market
         [4] = { low = 127, high = 127, diff = {23} }, -- So'leah
+    },
+    -- Dragonflight
+    [2579] = { -- Dawn of the Infinite
+        [8] = { low = 127, high = 127, diff = {23} }, -- Chrono-Lord Deios
     },
 }
 
