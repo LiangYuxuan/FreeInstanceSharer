@@ -54,11 +54,6 @@ F.Options.args.General = {
             set = function(info, value) F.db[info[#info]] = value; F:Update() end,
             disabled = function() return not F.db.Enable end,
             args = {
-                StopDC = {
-                    order = 11,
-                    name = L["Stop Disconnecting"],
-                    type = 'toggle',
-                },
                 AutoExtend = {
                     order = 12,
                     name = L["Auto Extend Saved Instances"],

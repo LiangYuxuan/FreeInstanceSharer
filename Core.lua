@@ -287,9 +287,6 @@ function F:Update()
     self:RegisterEvent('UPDATE_INSTANCE_INFO')
     self:RegisterEvent('PARTY_INVITE_REQUEST')
 
-    if self.db.StopDC then
-        self:RegisterEvent('PLAYER_CAMPING')
-    end
     if self.db.DNDMessage then
         self:RegisterEvent('CHAT_MSG_SYSTEM')
         self:UpdateDNDMessage()
@@ -360,13 +357,6 @@ function F:PARTY_INVITE_REQUEST(_, name)
 
     StaticPopup_Hide('PARTY_INVITE')
     StaticPopupSpecial_Hide(_G.LFGInvitePopup)
-end
-
-function F:PLAYER_CAMPING()
-    local dialogName = StaticPopup_Visible('CAMP')
-    if dialogName then
-        StaticPopup_Hide('CAMP')
-    end
 end
 
 function F:CHAT_MSG_SYSTEM(_, text)
