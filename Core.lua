@@ -578,7 +578,7 @@ function F:RecvChatMessage(text)
 
     local DungeonDifficulty = GetDungeonDifficultyID()
     local isHeroicDungeon = DungeonDifficulty == DifficultyUtil_ID_DungeonHeroic
-    isHeroicDungeon = (isHeroicDungeon or strfind(text, 'h')) and not strfind(text, 'n')
+    isHeroicDungeon = (isHeroicDungeon or (not not strfind(text, 'h'))) and not strfind(text, 'n')
     SetDungeonDifficultyID(isHeroicDungeon and DifficultyUtil_ID_DungeonHeroic or DifficultyUtil_ID_DungeonMythic)
 
     local RaidDifficulty = GetRaidDifficultyID()
@@ -586,8 +586,8 @@ function F:RecvChatMessage(text)
     local isTenPlayer = LegacyRaidDifficulty == DifficultyUtil_ID_Raid10Normal or LegacyRaidDifficulty == DifficultyUtil_ID_Raid10Heroic
     local isHeroic = RaidDifficulty == DifficultyUtil_ID_PrimaryRaidHeroic
 
-    isTenPlayer = (isTenPlayer or strfind(text, '10')) and not strfind(text, '25')
-    isHeroic = (isHeroic or strfind(text, 'h')) and not strfind(text, 'n')
+    isTenPlayer = (isTenPlayer or (not not strfind(text, '10'))) and not strfind(text, '25')
+    isHeroic = (isHeroic or (not not strfind(text, 'h'))) and not strfind(text, 'n')
     RaidDifficulty = isHeroic and DifficultyUtil_ID_PrimaryRaidHeroic or DifficultyUtil_ID_PrimaryRaidNormal
     LegacyRaidDifficulty = isHeroic and (
         isTenPlayer and DifficultyUtil_ID_Raid10Heroic or DifficultyUtil_ID_Raid25Heroic
