@@ -678,8 +678,9 @@ function F:CHAT_MSG_BN_WHISPER(_, text, playerName, _, _, _, _, _, _, _, _, _, _
     if text ~= self.db.InviteOnBNWhisperMsg then return end
 
     local accountInfo = C_BattleNet_GetAccountInfoByID(presenceID)
-    local gameAccountInfo = accountInfo.gameAccountInfo
-    local characterName, realmName = gameAccountInfo.characterName, gameAccountInfo.realmName
+    local gameAccountInfo = accountInfo and accountInfo.gameAccountInfo
+    local characterName = gameAccountInfo and gameAccountInfo.characterName
+    local realmName = gameAccountInfo and gameAccountInfo.realmName
     self:Debug("Received character %s-%s", characterName or "UNKNOWN", realmName or "UNKNOWN")
 
     if characterName and characterName ~= '' and realmName and realmName ~= '' then
