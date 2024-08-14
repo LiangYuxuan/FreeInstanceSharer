@@ -3,7 +3,7 @@ local F, L, P, G = unpack((select(2, ...)))
 -- Lua functions
 local _G = _G
 local bit_band, bit_bor, format, gsub, ipairs, pairs, select = bit.band, bit.bor, format, gsub, ipairs, pairs, select
-local strfind, strlower, tinsert, tonumber, tremove = strfind, strlower, tinsert, tonumber, tremove
+local strfind, strlower, strmatch, tinsert, tonumber, tremove = strfind, strlower, strmatch, tinsert, tonumber, tremove
 
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
@@ -319,9 +319,11 @@ function F:UPDATE_INSTANCE_INFO()
             local _, _, _, difficulty, _, extended = GetSavedInstanceInfo(i)
             -- Thanks to SavedInstances
             local link = GetSavedInstanceChatLink(i)
-            local instanceID, bossList = link:match(':(%d+):%d+:(%d+)\124h')
+            ---@cast link string
+            local instanceID, bossList = strmatch(link, ':(%d+):%d+:(%d+)\124h')
             instanceID = tonumber(instanceID)
             bossList = tonumber(bossList)
+            ---@cast bossList number
             if not extended and self.supportedInstances[instanceID] then
                 local corrupted
                 for _, data in pairs(self.supportedInstances[instanceID]) do
