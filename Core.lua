@@ -42,17 +42,16 @@ local StaticPopup_Visible = StaticPopup_Visible
 local StaticPopup_Hide = StaticPopup_Hide
 local StaticPopupSpecial_Hide = StaticPopupSpecial_Hide
 
-local Enum_PartyRequestJoinRelation_Friend = Enum.PartyRequestJoinRelation.Friend
-local Enum_PartyRequestJoinRelation_Guild = Enum.PartyRequestJoinRelation.Guild
-
+local DifficultyUtil_ID_DungeonHeroic = DifficultyUtil.ID.DungeonHeroic
+local DifficultyUtil_ID_DungeonMythic = DifficultyUtil.ID.DungeonMythic
 local DifficultyUtil_ID_PrimaryRaidHeroic = DifficultyUtil.ID.PrimaryRaidHeroic
 local DifficultyUtil_ID_PrimaryRaidNormal = DifficultyUtil.ID.PrimaryRaidNormal
 local DifficultyUtil_ID_Raid10Heroic = DifficultyUtil.ID.Raid10Heroic
 local DifficultyUtil_ID_Raid10Normal = DifficultyUtil.ID.Raid10Normal
 local DifficultyUtil_ID_Raid25Heroic = DifficultyUtil.ID.Raid25Heroic
 local DifficultyUtil_ID_Raid25Normal = DifficultyUtil.ID.Raid25Normal
-local DifficultyUtil_ID_DungeonHeroic = DifficultyUtil.ID.DungeonHeroic
-local DifficultyUtil_ID_DungeonMythic = DifficultyUtil.ID.DungeonMythic
+local Enum_PartyRequestJoinRelation_Friend = Enum.PartyRequestJoinRelation.Friend
+local Enum_PartyRequestJoinRelation_Guild = Enum.PartyRequestJoinRelation.Guild
 local ERR_RAID_DIFFICULTY_CHANGED_S = ERR_RAID_DIFFICULTY_CHANGED_S
 local FONT_COLOR_CODE_CLOSE = FONT_COLOR_CODE_CLOSE
 local GREEN_FONT_COLOR_CODE = GREEN_FONT_COLOR_CODE
