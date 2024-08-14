@@ -379,6 +379,7 @@ end
 function F:Invite(name)
     self:Debug("Inviting %s to party", name)
 
+    C_PartyInfo_ConfirmLeaveParty()
     SetDungeonDifficultyID(DifficultyUtil_ID_DungeonMythic) -- Dungeon Mythic
     SetRaidDifficultyID(DifficultyUtil_ID_PrimaryRaidNormal) -- Raid Normal
     SetLegacyRaidDifficultyID(DifficultyUtil_ID_Raid25Normal) -- Legacy Raid 25 Players Normal
