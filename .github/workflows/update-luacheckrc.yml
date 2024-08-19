@@ -1,4 +1,4 @@
-name: Update .luacheckrc
+name: update-luacheckrc
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
 
       - name: Generate new .luacheckrc
-        uses: LiangYuxuan/action-generate-luacheckrc@master
+        uses: LiangYuxuan/action-generate-luacheckrc@v4
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6

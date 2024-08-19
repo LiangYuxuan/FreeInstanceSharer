@@ -1,4 +1,4 @@
-name: Update copyright year in license file
+name: update-license
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     - cron: 0 3 1 1 *
 
 jobs:
-  run:
+  generate:
     runs-on: ubuntu-latest
 
     steps:

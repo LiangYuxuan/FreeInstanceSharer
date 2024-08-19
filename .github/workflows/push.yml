@@ -1,4 +1,4 @@
-name: Build
+name: build
 
 on:
   push:
@@ -23,17 +23,17 @@ jobs:
           annotate: warning
 
       - name: Find globals
-        uses: LiangYuxuan/action-findglobals@master
+        uses: LiangYuxuan/action-findglobals@v2
         with:
           find-args: "! -path \"./Libs/*\""
 
       - name: Update CurseForge Translations
-        uses: LiangYuxuan/action-wowace-localization-import@master
+        uses: LiangYuxuan/action-wowace-localization-import@v3
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
 
       - name: Create Retail Package
-        uses: BigWigsMods/packager@master
+        uses: BigWigsMods/packager@v2
         env:
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
