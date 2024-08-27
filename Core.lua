@@ -67,6 +67,9 @@ local SOCIAL_SHARE_TEXT = SOCIAL_SHARE_TEXT
 local START = START
 local UNLIMITED = UNLIMITED
 
+local invitedToGroupTemplate = gsub(ERR_INVITED_TO_GROUP_SS, '|Hplayer:%%s|h%[%%s%]|h', '|Hplayer:(.+)|h(.+)|h')
+local invitedAlreadyInGroupTemplate = gsub(ERR_INVITED_ALREADY_IN_GROUP_SS, '|Hplayer:%%s|h%[%%s%]|h', '|Hplayer:(.+)|h(.+)|h')
+
 local STATUS_INIT     = 0
 local STATUS_IDLE     = 1
 local STATUS_INVITING = 2
@@ -285,9 +288,9 @@ function F:Update()
 
     self:RegisterEvent('UPDATE_INSTANCE_INFO')
     self:RegisterEvent('PARTY_INVITE_REQUEST')
+    self:RegisterEvent('CHAT_MSG_SYSTEM')
 
     if self.db.DNDMessage then
-        self:RegisterEvent('CHAT_MSG_SYSTEM')
         self:UpdateDNDMessage()
     else
         self:RemoveDNDStatus()
@@ -297,6 +300,9 @@ function F:Update()
     end
     if self.db.InviteOnBNWhisper then
         self:RegisterEvent('CHAT_MSG_BN_WHISPER')
+    end
+    if self.db.InviteOnInvited then
+        self:RegisterEvent('UI_ERROR_MESSAGE')
     end
     if self.db.AutoQueue and not self.timer then
         self.timer = self:ScheduleRepeatingTimer('FetchUpdate', .5)
@@ -361,8 +367,31 @@ function F:PARTY_INVITE_REQUEST(_, name)
 end
 
 function F:CHAT_MSG_SYSTEM(_, text)
-    if strfind(text, MARKED_AFK) then
+    if self.db.DNDMessage and strfind(text, MARKED_AFK) then
         self:UpdateDNDMessage()
+    elseif self.db.InviteOnInvited then
+        local playerName = strmatch(text, invitedToGroupTemplate)
+            or strmatch(text, invitedAlreadyInGroupTemplate)
+
+        if playerName then
+            if not self.db.AutoQueue then
+                self:Invite(playerName)
+            else
+                self:QueuePush(playerName)
+            end
+        end
+    end
+end
+
+function F:UI_ERROR_MESSAGE(_, errorType)
+    if errorType == 720 then
+        self:Debug("Inviting during invited")
+
+        if self.pendingInvite then
+            self:Debug("Readding %s to queue", self.pendingInvite)
+
+            tinsert(self.queue, 1, self.pendingInvite)
+        end
     end
 end
 
@@ -392,6 +421,8 @@ function F:Invite(name)
     end
 
     C_PartyInfo_ConfirmInviteUnit(name)
+
+    self.pendingInvite = name
 end
 
 -- player in party, STATUS_INVITING -> STATUS_INVITED
@@ -402,6 +433,7 @@ function F:ConfirmInvite()
 
     self.status = STATUS_INVITED
     self.invitedTime = GetTime()
+    self.pendingInvite = nil
 
     self:SendMessage(self.db.WelcomeMsg, 'SMART')
 end
@@ -455,8 +487,8 @@ function F:FetchUpdate()
 
         -- check queue
         if #self.queue > 0 then
-            local name = self.queue[1]
-            tremove(self.queue, 1)
+            local name = tremove(self.queue, 1)
+
             self:Invite(name)
             self:UpdateDNDMessage()
         end

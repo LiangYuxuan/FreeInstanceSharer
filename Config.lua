@@ -86,8 +86,14 @@ F.Options.args.General = {
                     type = 'toggle',
                     set = function(info, value) F.db[info[#info]] = value; F:Update() end,
                 },
-                BlacklistMaliciousUser = {
+                InviteOnInvited = {
                     order = 23,
+                    name = L["Auto Invite on Invited"],
+                    type = 'toggle',
+                    set = function(info, value) F.db[info[#info]] = value; F:Update() end,
+                },
+                BlacklistMaliciousUser = {
+                    order = 24,
                     name = L["Blacklist Malicious User"],
                     type = 'toggle',
                     disabled = function() return not F.db.Enable or not F.db.InviteOnWhisper end,

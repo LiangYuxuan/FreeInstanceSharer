@@ -9,6 +9,7 @@ P.InviteOnWhisper = true
 P.InviteOnWhisperMsg = '123'
 P.InviteOnBNWhisper = true
 P.InviteOnBNWhisperMsg = '123'
+P.InviteOnInvited = false
 P.BlacklistMaliciousUser = true
 P.AutoQueue = true
 P.LeaveQueueOnWhisper = true
