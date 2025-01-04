@@ -374,6 +374,8 @@ function F:CHAT_MSG_SYSTEM(_, text)
             or strmatch(text, invitedAlreadyInGroupTemplate)
 
         if playerName then
+            if self:DetectMaliciousUser(playerName) then return end
+
             if not self.db.AutoQueue then
                 self:Invite(playerName)
             else
