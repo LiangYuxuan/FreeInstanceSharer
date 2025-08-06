@@ -8,6 +8,7 @@ local strfind, strlower, strmatch, tinsert, tonumber, tremove = strfind, strlowe
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
 local C_BattleNet_GetAccountInfoByID = C_BattleNet.GetAccountInfoByID
+-- luacheck: globals C_ChatInfo.SendChatMessage
 local C_ChatInfo_SendChatMessage = C_ChatInfo.SendChatMessage
 local C_PartyInfo_ConfirmConvertToRaid = C_PartyInfo.ConfirmConvertToRaid
 local C_PartyInfo_ConfirmInviteUnit = C_PartyInfo.ConfirmInviteUnit
