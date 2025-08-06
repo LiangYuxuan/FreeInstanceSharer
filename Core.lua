@@ -123,6 +123,7 @@ F.supportedInstances = {
     },
     [1136] = { -- Siege of Orgrimmar
         [5]  = { low = 17032, high = 17032, diff = {14, 15} }, -- Galakras
+        [7]  = { low = 21160, high = 21160, diff = {14, 15} }, -- Kor'kron Dark Shaman
         [12] = { low = 23468, high = 23486, diff = {14, 15} }, -- Siegecrafter Blackfuse
         [14] = { low = 23551, high = 23551, diff = {15} }, -- Garrosh Hellscream
     },
@@ -152,6 +153,9 @@ F.supportedInstances = {
     },
     [2070] = { -- Battle of Dazar'alor
         [7] = { low = 863, high = 863, diff = {14, 15} }, -- High Tinker Mekkatorque
+    },
+    [2164] = { -- The Eternal Palace
+        [7] = { low = 245, high = 245, diff = {15} }, -- Za'qul
     },
     -- Shadowlands
     [2450] = { -- Sanctum of Domination
