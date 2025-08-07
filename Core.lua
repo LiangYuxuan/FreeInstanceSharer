@@ -8,8 +8,6 @@ local strfind, strlower, strmatch, tinsert, tonumber, tremove = strfind, strlowe
 -- WoW API / Variables
 local BNSendWhisper = BNSendWhisper
 local C_BattleNet_GetAccountInfoByID = C_BattleNet.GetAccountInfoByID
--- luacheck: globals C_ChatInfo.SendChatMessage
-local C_ChatInfo_SendChatMessage = C_ChatInfo.SendChatMessage
 local C_PartyInfo_ConfirmConvertToRaid = C_PartyInfo.ConfirmConvertToRaid
 local C_PartyInfo_ConfirmInviteUnit = C_PartyInfo.ConfirmInviteUnit
 local C_PartyInfo_ConfirmLeaveParty = C_PartyInfo.ConfirmLeaveParty
@@ -31,6 +29,7 @@ local PromoteToLeader = PromoteToLeader
 local RequestRaidInfo = RequestRaidInfo
 local ResetInstances = ResetInstances
 local RespondToInviteConfirmation = RespondToInviteConfirmation
+local SendChatMessage = SendChatMessage
 local SetDungeonDifficultyID = SetDungeonDifficultyID
 local SetLegacyRaidDifficultyID = SetLegacyRaidDifficultyID
 local SetRaidDifficultyID = SetRaidDifficultyID
@@ -245,7 +244,7 @@ function F:SendMessage(text, chatType, channel, currIndex)
         end
     end
 
-    return C_ChatInfo_SendChatMessage(text, chatType, nil, channel)
+    return SendChatMessage(text, chatType, nil, channel)
 end
 
 function F:UpdateDNDMessage()
@@ -256,7 +255,7 @@ end
 
 function F:RemoveDNDStatus()
     if UnitIsDND('player') then
-        C_ChatInfo_SendChatMessage('', 'DND')
+        SendChatMessage('', 'DND')
     end
 end
 
