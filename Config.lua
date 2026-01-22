@@ -5,7 +5,7 @@ local AceConfigDialog = LibStub('AceConfigDialog-3.0')
 
 -- Lua functions
 local _G = _G
-local ipairs, pairs, tinsert = ipairs, pairs, tinsert
+local ipairs, pairs, strfind, tinsert = ipairs, pairs, strfind, tinsert
 
 -- WoW API / Variables
 local RequestRaidInfo = RequestRaidInfo
