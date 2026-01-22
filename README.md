@@ -2,7 +2,7 @@
 
 A light World of Warcraft addon to share your saved lockouts to others.
 
-[![Build Status](https://github.com/LiangYuxuan/FreeInstanceSharer/workflows/Build/badge.svg)](https://github.com/LiangYuxuan/FreeInstanceSharer/actions?workflow=Build)
+[![Build Status](https://github.com/LiangYuxuan/FreeInstanceSharer/workflows/build/badge.svg)](https://github.com/LiangYuxuan/FreeInstanceSharer/actions?workflow=build)
 
 ## Introduction
 
