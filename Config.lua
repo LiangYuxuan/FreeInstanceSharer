@@ -20,6 +20,7 @@ local SLASH_STOPWATCH_PARAM_PAUSE1 = SLASH_STOPWATCH_PARAM_PAUSE1
 -- GLOBALS: LibStub
 
 local currentSelectBlacklist
+local currentSearchBlacklist = ''
 
 F.Options.args.config = {
     name = L["Open config"],
@@ -188,22 +189,37 @@ F.Options.args.General = {
                     get = function() end,
                     set = function(_, value) F:QueuePop(value); tinsert(F.db.Blacklist, value) end,
                 },
-                List = {
+                Search = {
                     order = 52,
+                    name = SEARCH,
+                    type = 'input',
+                    get = function() return currentSearchBlacklist end,
+                    set = function(_, value) currentSearchBlacklist = value end,
+                },
+                List = {
+                    order = 53,
                     name = IGNORE_LIST,
                     type = 'select',
                     get = function() return currentSelectBlacklist end,
                     set = function(_, value) currentSelectBlacklist = value end,
                     values = function()
                         local result = {}
-                        for _, name in ipairs(F.db.Blacklist) do
-                            result[name] = name
+                        if #currentSearchBlacklist > 0 then
+                            for _, name in ipairs(F.db.Blacklist) do
+                                if strfind(name, currentSearchBlacklist, nil, true) then
+                                    result[name] = name
+                                end
+                            end
+                        else
+                            for _, name in ipairs(F.db.Blacklist) do
+                                result[name] = name
+                            end
                         end
                         return result
                     end,
                 },
                 Delete = {
-                    order = 53,
+                    order = 54,
                     name = DELETE,
                     type = 'execute',
                     func = function() tDeleteItem(F.db.Blacklist, currentSelectBlacklist); currentSelectBlacklist = nil end,
