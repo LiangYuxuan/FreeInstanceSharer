@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Generate new .luacheckrc
-        uses: LiangYuxuan/action-generate-luacheckrc@v4
+        uses: LiangYuxuan/action-generate-luacheckrc@master
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v8

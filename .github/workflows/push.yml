@@ -23,12 +23,12 @@ jobs:
           annotate: warning
 
       - name: Find globals
-        uses: LiangYuxuan/action-findglobals@v2
+        uses: LiangYuxuan/action-findglobals@master
         with:
           find-args: "! -path \"./Libs/*\""
 
       - name: Update CurseForge Translations
-        uses: LiangYuxuan/action-wowace-localization-import@v3
+        uses: LiangYuxuan/action-wowace-localization-import@master
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
 
