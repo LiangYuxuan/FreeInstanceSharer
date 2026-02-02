@@ -6,8 +6,8 @@ local bit_band, bit_bor, format, gsub, ipairs, pairs, select = bit.band, bit.bor
 local strfind, strlower, strmatch, tinsert, tonumber, tremove = strfind, strlower, strmatch, tinsert, tonumber, tremove
 
 -- WoW API / Variables
-local BNSendWhisper = BNSendWhisper
 local C_BattleNet_GetAccountInfoByID = C_BattleNet.GetAccountInfoByID
+local C_BattleNet_SendWhisper = C_BattleNet.SendWhisper
 local C_ChatInfo_SendChatMessage = C_ChatInfo.SendChatMessage
 local C_PartyInfo_ConfirmConvertToRaid = C_PartyInfo.ConfirmConvertToRaid
 local C_PartyInfo_ConfirmInviteUnit = C_PartyInfo.ConfirmInviteUnit
@@ -233,7 +233,7 @@ function F:SendMessage(text, chatType, channel, currIndex)
     text = gsub(text, 'NAME', self.playerFullName)
 
     if chatType == 'BNWHISPER' then
-        return BNSendWhisper(channel, text)
+        return C_BattleNet_SendWhisper(channel, text)
     elseif chatType == 'SMART' then
         if IsInRaid() then
             chatType = 'RAID'
