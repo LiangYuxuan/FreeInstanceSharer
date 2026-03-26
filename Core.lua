@@ -265,11 +265,15 @@ function F:TogglePause(pausedQueue)
 end
 
 function F:Initialize()
-    self:Release()
     self.status = STATUS_INIT
     self.queue = {}
 
     if self.db.Enable then
+        -- only release (side effect: leave party) when enabled
+        self:Release()
+        -- force status to init
+        self.status = STATUS_INIT
+
         self:RegisterEvent('UPDATE_INSTANCE_INFO')
         self:RegisterBucketEvent('PLAYER_ENTERING_WORLD', 1, RequestRaidInfo)
         RequestRaidInfo()
