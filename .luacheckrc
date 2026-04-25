@@ -51171,7 +51171,6 @@ read_globals = {
 	"ConvertPixelsToUI",
 	"ConvertRGBtoColorString",
 	"ConvertSecondsToUnits",
-	"CooldownBroadcasterFrame",
 	"CooldownBroadcaster_LoadUI",
 	"CooldownCircleTrackerMixin",
 	"CooldownFrame_Clear",
