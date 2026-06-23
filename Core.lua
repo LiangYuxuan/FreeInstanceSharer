@@ -14,6 +14,7 @@ local C_PartyInfo_ConfirmInviteUnit = C_PartyInfo.ConfirmInviteUnit
 local C_PartyInfo_ConfirmLeaveParty = C_PartyInfo.ConfirmLeaveParty
 local C_PartyInfo_ConvertToParty = C_PartyInfo.ConvertToParty
 local C_PartyInfo_GetInviteReferralInfo = C_PartyInfo.GetInviteReferralInfo
+local C_PartyInfo_PromoteToLeader = C_PartyInfo.PromoteToLeader
 local GetDifficultyInfo = GetDifficultyInfo
 local GetDungeonDifficultyID = GetDungeonDifficultyID
 local GetInviteConfirmationInfo = GetInviteConfirmationInfo
@@ -26,7 +27,6 @@ local GetSavedInstanceInfo = GetSavedInstanceInfo
 local GetTime = GetTime
 local IsInGroup = IsInGroup
 local IsInRaid = IsInRaid
-local PromoteToLeader = PromoteToLeader
 local RequestRaidInfo = RequestRaidInfo
 local ResetInstances = ResetInstances
 local RespondToInviteConfirmation = RespondToInviteConfirmation
@@ -483,7 +483,7 @@ function F:Release()
 
     if IsInGroup() then
         if GetNumGroupMembers() > 1 then
-            PromoteToLeader('party1')
+            C_PartyInfo_PromoteToLeader('party1')
         end
         C_PartyInfo_ConfirmLeaveParty()
     end
